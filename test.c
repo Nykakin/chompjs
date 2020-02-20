@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 struct Token;
 struct Lexer;
@@ -11,7 +12,6 @@ struct State key(struct Lexer* lexer);
 struct State colon(struct Lexer* lexer);
 struct State value(struct Lexer* lexer);
 struct State array(struct Lexer* lexer);
-struct State element(struct Lexer* lexer);
 struct State comma_or_close(struct Lexer* lexer);
 struct State end(struct Lexer* lexer);
 struct State error(struct Lexer* lexer);
@@ -160,6 +160,7 @@ struct State key(struct Lexer* lexer) {
     }
     if(isalnum(c)) {
         emit('"', lexer);
+        lexer->position -= 1;
         while(isalnum(c) || c == '$' || c == '_') {
             emit(c, lexer);
             c = lexer->input[lexer->position];
@@ -191,62 +192,12 @@ struct State colon(struct Lexer* lexer) {
     }
 }
 
-struct State value(struct Lexer* lexer) {
-    char c = next_char(lexer);
-    switch(c) {
-    case '{':
-        emit('{', lexer);
-        push(DICT, lexer);
-        struct State new_dictionary_state = {dictionary};
-        return new_dictionary_state;
-    case '[':
-        emit('[', lexer);
-        push(ARRAY, lexer);
-        struct State new_array_state = {array};
-        return new_array_state;
-    case '\'':
-    case '"':
-    case '`':
-        lexer->current_quotation = c;
-        emit('"', lexer);
-        
-        while(1) {
-            c = lexer->input[lexer->position];
-            // handle escape sequences such as \\ and \'
-            if(c == '\\'){
-                emit('\\', lexer);
-                emit(lexer->input[lexer->position+1], lexer);
-                continue;
-            }
-            // if we're closing the quotations, we're done with the string
-            if(c == lexer->current_quotation) {
-                emit('"', lexer);
-                struct State new_state = {comma_or_close};
-                return new_state;            
-            }
-            // otherwise, emit character
-            emit(c, lexer);
-        }
-    }
-    if(isdigit(c) || c == '.') {
-        do {
-            emit(c, lexer);
-            c = lexer->input[lexer->position];
-        } while(isdigit(c) || c == '.');
-        struct State new_state = {comma_or_close};
-        return new_state;           
-    }
-
-    struct State error_state = {error};
-    return error_state;
-}
-
 struct State array(struct Lexer* lexer) {
-    struct State new_state = {element};
+    struct State new_state = {value};
     return new_state;
 }
 
-struct State element(struct Lexer* lexer) {
+struct State value(struct Lexer* lexer) {
     char c = next_char(lexer);
     switch(c) {
     case '{':
@@ -288,8 +239,16 @@ struct State element(struct Lexer* lexer) {
         }
         emit(']', lexer);
         pop(lexer);
-        struct State new_state = {comma_or_close};
-        return new_state;   
+        struct State new_array_close_state = {comma_or_close};
+        return new_array_close_state;   
+    case '}':
+        if(prev_char(lexer) == ',') {
+            unemit(lexer);
+        }
+        emit('}', lexer);
+        pop(lexer);
+        struct State new_dictionary_close_state = {comma_or_close};
+        return new_dictionary_close_state;   
     }
     if(isdigit(c) || c == '.') {
         do {
@@ -298,6 +257,29 @@ struct State element(struct Lexer* lexer) {
         } while(isdigit(c) || c == '.');
         struct State new_state = {comma_or_close};
         return new_state;           
+    }
+    if(strncmp(lexer->input + lexer->position, "true", 4) == 0) {
+        emit('t', lexer);
+        emit('r', lexer);
+        emit('u', lexer);
+        emit('e', lexer);
+        struct State new_dictionary_close_state = {comma_or_close};
+        return new_dictionary_close_state;
+    } else if(strncmp(lexer->input + lexer->position, "false", 5) == 0) {
+        emit('f', lexer);
+        emit('a', lexer);
+        emit('l', lexer);
+        emit('s', lexer);
+        emit('e', lexer);
+        struct State new_dictionary_close_state = {comma_or_close};
+        return new_dictionary_close_state;
+    } else if(strncmp(lexer->input + lexer->position, "none", 4) == 0) {
+        emit('n', lexer);
+        emit('o', lexer);
+        emit('n', lexer);
+        emit('e', lexer);
+        struct State new_dictionary_close_state = {comma_or_close};
+        return new_dictionary_close_state;
     }
 
     struct State error_state = {error};
@@ -384,4 +366,29 @@ int main(){
     parse("{'a':[{'a':12}, {'b':33}]}");
     parse("{identifier: 12}");
     parse("{abcdefghijklmnopqrstuvwxyz: 12}");
+    parse("{                                                                                       \
+        '152065' : {                                                                               \
+            canonicalURL: 'https://www.chewy.com/living-world-cuttlebone-bird-treat-2/dp/152065',  \
+            ajaxURL: `/living-world-cuttlebone-bird-treat-2/dp/152065?features`,                   \
+            sku: 124945,                                                                           \
+            images: [                                                                              \
+                '//img.chewy.com/is/image/catalog/124945_MAIN._AC_SL400_V1495567031_.jpg',         \
+                                                                                                   \
+                        '//img.chewy.com/is/image/catalog/124945_PT2._AC_SL320_V1497994333_.jpg',  \
+                     ],                                                                            \
+            price: '$1.69'                                                                         \
+        },                                                                                         \
+        '131457' : {                                                                               \
+            canonicalURL: 'https://www.chewy.com/living-world-cuttlebone-bird-treat/dp/131457',    \
+            ajaxURL: `/living-world-cuttlebone-bird-treat/dp/131457?features`,                     \
+            sku: 103970,                                                                           \
+            images: [                                                                              \
+                '//img.chewy.com/is/catalog/103970._AC_SL400_V1469015482_.jpg',                    \
+                                                                                                   \
+                        '//img.chewy.com/is/image/catalog/103970_PT1._AC_SL320_V1518213672_.jpg',  \
+                     ],                                                                            \
+            price: '$5.91'                                                                         \
+        }                                                                                          \
+    }");
+    parse("{'hello': true, 'beautiful': false, 'world': none}");
 }
