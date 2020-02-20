@@ -134,10 +134,26 @@ struct State key(struct Lexer* lexer) {
         pop(lexer);
         struct State new_state = {comma_or_close};
         return new_state;   
-    default:;
-        struct State error_state = {error};
-        return error_state;
     }
+    if(isalnum(c)) {
+        emit('"', lexer);
+        do {
+            emit(c, lexer);
+            c = lexer->input[lexer->position];
+        } while(isalnum(c) || c == '$' || c == '_');
+        emit('"', lexer);
+        if(lexer->input[lexer->position-1] == ':') {
+            emit(':', lexer);
+            struct State new_state = {value};
+            return new_state;
+        } else {
+            struct State error_state = {error};
+            return error_state;
+        }
+    }
+
+    struct State error_state = {error};
+    return error_state;
 }
 
 struct State colon(struct Lexer* lexer) {
@@ -321,7 +337,7 @@ int main(){
     parse("{'hello': 'world',}");
     parse("{'hello': 'world', 'my': 'master'}");
     parse("{'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'}");
-    parse("{\"hello\": 12, 'world': 10002.21}");
+    parse("{'hello': 12, 'world': 10002.21}");
     parse("{'hello': {}}");
     parse("{}");
     parse("[]");
@@ -334,5 +350,7 @@ int main(){
     parse("{'hello': [], 'world': [0]}");
     parse("{'hello': [1, 2, 3, 4]}");
     parse("[{'a':12}, {'b':33}]");
-    parse("{\"a\":[{\"a\":12}, {\"b\":33}]}");
+    parse("{'a':[{'a':12}, {'b':33}]}");
+    parse("{'a':[{'a':12}, {'b':33}]}");
+    parse("{identifier: 12}");
 }
