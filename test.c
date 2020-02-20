@@ -56,9 +56,30 @@ char next_char(struct Lexer* lexer) {
     return '\0';
 }
 
+char prev_char(struct Lexer* lexer) {
+    int index = lexer->position-1;
+    while(index > 0) {
+        switch(lexer->input[index]) {
+        case ' ':
+        case '\n':
+        case '\t':
+            index -= 1;
+            continue;
+        break;
+        default:
+            return lexer->input[index];
+        }
+    }
+    return '\0';
+}
+
 void emit(char c, struct Lexer* lexer) {
     putchar(c);
     lexer->position += 1;
+}
+
+void unemit(struct Lexer* lexer) {
+    putchar('\b');
 }
 
 void push(type t, struct Lexer* lexer) {
@@ -77,7 +98,6 @@ type top(struct Lexer* lexer) {
 int empty(struct Lexer* lexer) {
     return lexer->stack_index == 0;
 }
-
 
 struct State begin(struct Lexer* lexer) {
     // Assume JSON starts from '{' or '[', otherwise it's an error
@@ -130,6 +150,9 @@ struct State key(struct Lexer* lexer) {
             emit(c, lexer);
         }
     case '}':
+        if(prev_char(lexer) == ',') {
+            unemit(lexer);
+        }
         emit('}', lexer);
         pop(lexer);
         struct State new_state = {comma_or_close};
@@ -137,10 +160,10 @@ struct State key(struct Lexer* lexer) {
     }
     if(isalnum(c)) {
         emit('"', lexer);
-        do {
+        while(isalnum(c) || c == '$' || c == '_') {
             emit(c, lexer);
             c = lexer->input[lexer->position];
-        } while(isalnum(c) || c == '$' || c == '_');
+        }
         emit('"', lexer);
         if(lexer->input[lexer->position-1] == ':') {
             emit(':', lexer);
@@ -260,6 +283,9 @@ struct State element(struct Lexer* lexer) {
             emit(c, lexer);
         }
     case ']':
+        if(prev_char(lexer) == ',') {
+            unemit(lexer);
+        }
         emit(']', lexer);
         pop(lexer);
         struct State new_state = {comma_or_close};
@@ -295,6 +321,9 @@ struct State comma_or_close(struct Lexer* lexer) {
         }
     case ']':
     case '}':
+        if(prev_char(lexer) == ',') {
+            unemit(lexer);
+        }
         emit(c, lexer);
         pop(lexer);
         struct State new_state = {comma_or_close};
@@ -346,6 +375,7 @@ int main(){
     parse("[1]");
     parse("[1,]");
     parse("[1, 2, 3, 4]");
+    parse("[1, 2, 3, 4,]");
     parse("['h', 'e', 'l', 'l', 'o']");
     parse("{'hello': [], 'world': [0]}");
     parse("{'hello': [1, 2, 3, 4]}");
@@ -353,4 +383,5 @@ int main(){
     parse("{'a':[{'a':12}, {'b':33}]}");
     parse("{'a':[{'a':12}, {'b':33}]}");
     parse("{identifier: 12}");
+    parse("{abcdefghijklmnopqrstuvwxyz: 12}");
 }
