@@ -4,12 +4,6 @@ Python 3.7.3 (default, Oct  7 2019, 12:56:13)
 [GCC 8.3.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import js_object_parser
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "/home/mariusz/Documents/Projekty/JSObjectParser/js_object_parser.py", line 3, in <module>
-    from .hello import parse
-ImportError: attempted relative import with no known parent package
->>> import js_object_parser
 >>> js_object_parser.parse_js_object("""{
 ...         
 ...         '152065' : {
