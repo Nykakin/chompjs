@@ -243,11 +243,11 @@ struct State value(struct Lexer* lexer) {
         emit('e', lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
-    } else if(strncmp(lexer->input + lexer->input_position, "none", 4) == 0) {
+    } else if(strncmp(lexer->input + lexer->input_position, "null", 4) == 0) {
         emit('n', lexer);
-        emit('o', lexer);
-        emit('n', lexer);
-        emit('e', lexer);
+        emit('u', lexer);
+        emit('l', lexer);
+        emit('l', lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
     }
