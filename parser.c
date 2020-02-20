@@ -1,40 +1,9 @@
+#include "parser.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
-
-struct Token;
-struct Lexer;
-
-struct State begin(struct Lexer* lexer);
-struct State dictionary(struct Lexer* lexer);
-struct State key(struct Lexer* lexer);
-struct State colon(struct Lexer* lexer);
-struct State value(struct Lexer* lexer);
-struct State array(struct Lexer* lexer);
-struct State comma_or_close(struct Lexer* lexer);
-struct State end(struct Lexer* lexer);
-struct State error(struct Lexer* lexer);
-
-struct State {
-    struct State (*change)(struct Lexer *);
-};
-
-typedef enum {
-    DICT,
-    ARRAY
-} type;
-
-struct Lexer {
-    const char* input;
-    long position;
-    struct State state;
-    int can_advance;
-
-    short stack_index;
-    type stack[10];
-    char current_quotation;    
-};
 
 void advance(struct Lexer* lexer) {
     lexer->state = lexer->state.change(lexer);
@@ -42,22 +11,22 @@ void advance(struct Lexer* lexer) {
 
 char next_char(struct Lexer* lexer) {
     while(1) {
-        switch(lexer->input[lexer->position]) {
+        switch(lexer->input[lexer->input_position]) {
         case ' ':
         case '\n':
         case '\t':
-            lexer->position += 1;
+            lexer->input_position += 1;
             continue;
         break;
         default:
-            return lexer->input[lexer->position];
+            return lexer->input[lexer->input_position];
         }
     }
     return '\0';
 }
 
 char prev_char(struct Lexer* lexer) {
-    int index = lexer->position-1;
+    int index = lexer->input_position-1;
     while(index > 0) {
         switch(lexer->input[index]) {
         case ' ':
@@ -74,12 +43,13 @@ char prev_char(struct Lexer* lexer) {
 }
 
 void emit(char c, struct Lexer* lexer) {
-    putchar(c);
-    lexer->position += 1;
+    lexer->output[lexer->output_position] = c;
+    lexer->output_position += 1;
+    lexer->input_position += 1;
 }
 
 void unemit(struct Lexer* lexer) {
-    putchar('\b');
+    lexer->output_position -= 1;
 }
 
 void push(type t, struct Lexer* lexer) {
@@ -133,11 +103,11 @@ struct State key(struct Lexer* lexer) {
         emit('"', lexer);
 
         while(1) {
-            c = lexer->input[lexer->position];
+            c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
                 emit('\\', lexer);
-                emit(lexer->input[lexer->position+1], lexer);
+                emit(lexer->input[lexer->input_position+1], lexer);
                 continue;
             }
             // if we're closing the quotations, we're done with the string
@@ -160,13 +130,13 @@ struct State key(struct Lexer* lexer) {
     }
     if(isalnum(c)) {
         emit('"', lexer);
-        lexer->position -= 1;
+        lexer->input_position -= 1;
         while(isalnum(c) || c == '$' || c == '_') {
             emit(c, lexer);
-            c = lexer->input[lexer->position];
+            c = lexer->input[lexer->input_position];
         }
         emit('"', lexer);
-        if(lexer->input[lexer->position-1] == ':') {
+        if(lexer->input[lexer->input_position-1] == ':') {
             emit(':', lexer);
             struct State new_state = {value};
             return new_state;
@@ -217,11 +187,11 @@ struct State value(struct Lexer* lexer) {
         emit('"', lexer);
         
         while(1) {
-            c = lexer->input[lexer->position];
+            c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
                 emit('\\', lexer);
-                emit(lexer->input[lexer->position+1], lexer);
+                emit(lexer->input[lexer->input_position+1], lexer);
                 continue;
             }
             // if we're closing the quotations, we're done with the string
@@ -253,19 +223,19 @@ struct State value(struct Lexer* lexer) {
     if(isdigit(c) || c == '.') {
         do {
             emit(c, lexer);
-            c = lexer->input[lexer->position];
+            c = lexer->input[lexer->input_position];
         } while(isdigit(c) || c == '.');
         struct State new_state = {comma_or_close};
         return new_state;           
     }
-    if(strncmp(lexer->input + lexer->position, "true", 4) == 0) {
+    if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
         emit('t', lexer);
         emit('r', lexer);
         emit('u', lexer);
         emit('e', lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
-    } else if(strncmp(lexer->input + lexer->position, "false", 5) == 0) {
+    } else if(strncmp(lexer->input + lexer->input_position, "false", 5) == 0) {
         emit('f', lexer);
         emit('a', lexer);
         emit('l', lexer);
@@ -273,7 +243,7 @@ struct State value(struct Lexer* lexer) {
         emit('e', lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
-    } else if(strncmp(lexer->input + lexer->position, "none", 4) == 0) {
+    } else if(strncmp(lexer->input + lexer->input_position, "none", 4) == 0) {
         emit('n', lexer);
         emit('o', lexer);
         emit('n', lexer);
@@ -317,78 +287,13 @@ struct State comma_or_close(struct Lexer* lexer) {
 }
 
 struct State end(struct Lexer* lexer) {
+    lexer->output[lexer->output_position] = '\0';
     lexer->can_advance = 0;
     return lexer->state;
 }
 
 struct State error(struct Lexer* lexer) {
+    lexer->output[lexer->output_position] = '\0';
     lexer->can_advance = 0;
     return lexer->state;
-}
-
-
-void parse(const char* string) {
-    struct Lexer lexer = {
-        string,
-        0,
-        {begin},
-        1,
-        0,
-    };
-
-    while(lexer.can_advance) {
-        advance(&lexer);
-    }
-    putchar('\n');
-    fflush(stdout);  
-}
-
-int main(){
-    parse("{'hello': 'world'}");
-    parse("{'hello': 'world',}");
-    parse("{'hello': 'world', 'my': 'master'}");
-    parse("{'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'}");
-    parse("{'hello': 12, 'world': 10002.21}");
-    parse("{'hello': {}}");
-    parse("{}");
-    parse("[]");
-    parse("[[[]]]");
-    parse("[[[1]]]");
-    parse("[1]");
-    parse("[1,]");
-    parse("[1, 2, 3, 4]");
-    parse("[1, 2, 3, 4,]");
-    parse("['h', 'e', 'l', 'l', 'o']");
-    parse("{'hello': [], 'world': [0]}");
-    parse("{'hello': [1, 2, 3, 4]}");
-    parse("[{'a':12}, {'b':33}]");
-    parse("{'a':[{'a':12}, {'b':33}]}");
-    parse("{'a':[{'a':12}, {'b':33}]}");
-    parse("{identifier: 12}");
-    parse("{abcdefghijklmnopqrstuvwxyz: 12}");
-    parse("{                                                                                       \
-        '152065' : {                                                                               \
-            canonicalURL: 'https://www.chewy.com/living-world-cuttlebone-bird-treat-2/dp/152065',  \
-            ajaxURL: `/living-world-cuttlebone-bird-treat-2/dp/152065?features`,                   \
-            sku: 124945,                                                                           \
-            images: [                                                                              \
-                '//img.chewy.com/is/image/catalog/124945_MAIN._AC_SL400_V1495567031_.jpg',         \
-                                                                                                   \
-                        '//img.chewy.com/is/image/catalog/124945_PT2._AC_SL320_V1497994333_.jpg',  \
-                     ],                                                                            \
-            price: '$1.69'                                                                         \
-        },                                                                                         \
-        '131457' : {                                                                               \
-            canonicalURL: 'https://www.chewy.com/living-world-cuttlebone-bird-treat/dp/131457',    \
-            ajaxURL: `/living-world-cuttlebone-bird-treat/dp/131457?features`,                     \
-            sku: 103970,                                                                           \
-            images: [                                                                              \
-                '//img.chewy.com/is/catalog/103970._AC_SL400_V1469015482_.jpg',                    \
-                                                                                                   \
-                        '//img.chewy.com/is/image/catalog/103970_PT1._AC_SL320_V1518213672_.jpg',  \
-                     ],                                                                            \
-            price: '$5.91'                                                                         \
-        }                                                                                          \
-    }");
-    parse("{'hello': true, 'beautiful': false, 'world': none}");
 }
