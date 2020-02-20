@@ -21,8 +21,6 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     while(lexer.can_advance) {
         advance(&lexer);
     }
-    putchar('\n');
-    fflush(stdout);
 
     PyObject* ret = Py_BuildValue("s", lexer.output);
     free((char*)lexer.output);
