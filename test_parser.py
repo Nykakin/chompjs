@@ -14,7 +14,7 @@ class TestParser(unittest.TestCase):
     def test_nested_dict(self):
         result = js_object_parser.parse_js_object(
             "{'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'}"
-        );
+        )
         self.assertEqual(result, {'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'})
 
     def test_numbers(self):
@@ -26,7 +26,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result, {})
 
     def test_empty_list(self):
-        result = js_object_parser.parse_js_object("[]");
+        result = js_object_parser.parse_js_object("[]")
         self.assertEqual(result, [])
 
     def test_nested_lists(self):
@@ -59,15 +59,20 @@ class TestParser(unittest.TestCase):
 
     def test_list_of_dicts(self):
         result = js_object_parser.parse_js_object("[{'a':12}, {'b':33}]")
-        self.assertEqual(result, [{'a':12}, {'b':33}])
+        self.assertEqual(result, [{'a': 12}, {'b': 33}])
 
     def test_non_quoted_identifier(self):
-        result = js_object_parser.parse_js_object("{abcdefghijklmnopqrstuvwxyz: 12}");
+        result = js_object_parser.parse_js_object("{abcdefghijklmnopqrstuvwxyz: 12}")
         self.assertEqual(result, {"abcdefghijklmnopqrstuvwxyz": 12})
 
     def test_special_fields(self):
-        result = js_object_parser.parse_js_object("{'a': true, 'b': false, 'c': null}");
+        result = js_object_parser.parse_js_object("{'a': true, 'b': false, 'c': null}")
         self.assertEqual(result, {'a': True, 'b': False, 'c': None})
+
+    def test_quoted_strings(self):
+        result = js_object_parser.parse_js_object("{'a': '123\\'456'}")
+        self.assertEqual(result, {'a': "123'456"})
+
 
 if __name__ == '__main__':
     unittest.main()

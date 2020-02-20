@@ -106,9 +106,14 @@ struct State key(struct Lexer* lexer) {
             c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
-                emit('\\', lexer);
-                emit(lexer->input[lexer->input_position+1], lexer);
-                continue;
+                char escaped = lexer->input[lexer->input_position+1];
+                if(escaped== '`' || escaped == '\'') {
+                    lexer->input_position += 1;
+                    emit(escaped, lexer);
+                } else {
+                    emit('\\', lexer);
+                    emit(escaped, lexer);
+                }
             }
             // if we're closing the quotations, we're done with the string
             if(c == lexer->current_quotation) {
@@ -190,8 +195,14 @@ struct State value(struct Lexer* lexer) {
             c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
-                emit('\\', lexer);
-                emit(lexer->input[lexer->input_position+1], lexer);
+                char escaped = lexer->input[lexer->input_position+1];
+                if(escaped== '`' || escaped == '\'') {
+                    lexer->input_position += 1;
+                    emit(escaped, lexer);
+                } else {
+                    emit('\\', lexer);
+                    emit(escaped, lexer);
+                }
                 continue;
             }
             // if we're closing the quotations, we're done with the string
