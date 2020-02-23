@@ -49,6 +49,12 @@ void emit(char c, struct Lexer* lexer) {
     lexer->input_position += 1;
 }
 
+void emit_string(char *s, int size, struct Lexer* lexer) {
+    memcpy(lexer->output+lexer->output_position, s, size);
+    lexer->output_position += size;
+    lexer->input_position += size;    
+}
+
 void unemit(struct Lexer* lexer) {
     lexer->output_position -= 1;
 }
@@ -264,25 +270,15 @@ struct State value(struct Lexer* lexer) {
         return new_state;           
     }
     if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
-        emit('t', lexer);
-        emit('r', lexer);
-        emit('u', lexer);
-        emit('e', lexer);
+        emit_string("true", 4, lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
     } else if(strncmp(lexer->input + lexer->input_position, "false", 5) == 0) {
-        emit('f', lexer);
-        emit('a', lexer);
-        emit('l', lexer);
-        emit('s', lexer);
-        emit('e', lexer);
+        emit_string("false", 5, lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
     } else if(strncmp(lexer->input + lexer->input_position, "null", 4) == 0) {
-        emit('n', lexer);
-        emit('u', lexer);
-        emit('l', lexer);
-        emit('l', lexer);
+        emit_string("null", 4, lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
     }
