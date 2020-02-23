@@ -18,7 +18,13 @@ struct State {
 typedef enum {
     DICT,
     ARRAY
-} type;
+} Type;
+
+typedef enum {
+    CAN_ADVANCE,
+    FINISHED,
+    ERROR,
+} LexerStatus;
 
 struct Lexer {
     const char* input;
@@ -26,11 +32,11 @@ struct Lexer {
     long input_position;
     long output_position;
     struct State state;
-    int can_advance;
+    LexerStatus lexer_status;
 
     short stack_index;
     int stack_size;
-    type *stack;
+    Type *stack;
     char current_quotation;
 };
 

@@ -81,5 +81,12 @@ class TestParser(unittest.TestCase):
         result = js_object_parser.parse_js_object("[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]")
         self.assertEqual(result, [[[[[[[[[[[[[[[1]]]]]]]]]]]]]]])
 
+
+class TestParserExceptions(unittest.TestCase):
+    def test_invalid_input(self):
+        with self.assertRaises(ValueError):
+            js_object_parser.parse_js_object('}{')
+
+
 if __name__ == '__main__':
     unittest.main()

@@ -53,14 +53,14 @@ void unemit(struct Lexer* lexer) {
     lexer->output_position -= 1;
 }
 
-void push(type t, struct Lexer* lexer) {
+void push(Type t, struct Lexer* lexer) {
     lexer->stack[lexer->stack_index] = t;
     lexer->stack_index += 1;
     if(lexer->stack_index >= lexer->stack_size) {
-        type* old_stack = lexer->stack;
-        lexer->stack = malloc(2*lexer->stack_size*sizeof(type));
+        Type* old_stack = lexer->stack;
+        lexer->stack = malloc(2*lexer->stack_size*sizeof(Type));
         memmove(lexer->stack, old_stack, lexer->stack_size);
-        free((type*)old_stack);
+        free((Type*)old_stack);
         lexer->stack_size *= 2;
     }
 }
@@ -69,7 +69,7 @@ void pop(struct Lexer* lexer) {
     lexer->stack_index -= 1;
 }
 
-type top(struct Lexer* lexer) {
+Type top(struct Lexer* lexer) {
     return lexer->stack[lexer->stack_index-1];
 }
 
@@ -138,8 +138,13 @@ struct State key(struct Lexer* lexer) {
         }
         emit('}', lexer);
         pop(lexer);
-        struct State new_state = {comma_or_close};
-        return new_state;   
+        if(empty(lexer)) {
+            struct State new_state = {end};
+            return new_state;
+        } else {
+            struct State new_state = {comma_or_close};
+            return new_state;
+        }
     }
     if(isalnum(c)) {
         emit('"', lexer);
@@ -223,8 +228,13 @@ struct State value(struct Lexer* lexer) {
         }
         emit(']', lexer);
         pop(lexer);
-        struct State new_array_close_state = {comma_or_close};
-        return new_array_close_state;   
+        if(empty(lexer)) {
+            struct State new_state = {end};
+            return new_state;
+        } else {
+            struct State new_state = {comma_or_close};
+            return new_state;
+        }
     case '}':
         if(prev_char(lexer) == ',') {
             unemit(lexer);
@@ -292,8 +302,13 @@ struct State comma_or_close(struct Lexer* lexer) {
         }
         emit(c, lexer);
         pop(lexer);
-        struct State new_state = {comma_or_close};
-        return new_state;
+        if(empty(lexer)) {
+            struct State new_state = {end};
+            return new_state;
+        } else {
+            struct State new_state = {comma_or_close};
+            return new_state;
+        }
     default:;
         struct State error_state = {error};
         return error_state;
@@ -302,12 +317,12 @@ struct State comma_or_close(struct Lexer* lexer) {
 
 struct State end(struct Lexer* lexer) {
     lexer->output[lexer->output_position] = '\0';
-    lexer->can_advance = 0;
+    lexer->lexer_status = FINISHED;
     return lexer->state;
 }
 
 struct State error(struct Lexer* lexer) {
     lexer->output[lexer->output_position] = '\0';
-    lexer->can_advance = 0;
+    lexer->lexer_status = ERROR;
     return lexer->state;
 }

@@ -25,23 +25,27 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
         0,
         // initial state
         {begin},
-        // can_advance
-        1,
+        // initial lexer status
+        CAN_ADVANCE,
         // initial stack index
         0,
         // initial stack size
         10,
         // initial stack
-        malloc(10*sizeof(type))
+        malloc(10*sizeof(Type))
     };
 
-    while(lexer.can_advance) {
+    while(lexer.lexer_status == CAN_ADVANCE) {
         advance(&lexer);
     }
 
     PyObject* ret = Py_BuildValue("s", lexer.output);
     free((char*)lexer.output);
-    free((type*)lexer.stack);
+    free((Type*)lexer.stack);
+    if(lexer.lexer_status == ERROR) {
+        PyErr_SetString(PyExc_ValueError, "Parser error");
+        return NULL;
+    }
     return ret;
 }
 
