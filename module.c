@@ -41,6 +41,7 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
 
     PyObject* ret = Py_BuildValue("s", lexer.output);
     free((char*)lexer.output);
+    free((type*)lexer.stack);
     return ret;
 }
 

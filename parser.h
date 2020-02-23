@@ -31,7 +31,7 @@ struct Lexer {
     short stack_index;
     int stack_size;
     type *stack;
-    char current_quotation;    
+    char current_quotation;
 };
 
 void advance(struct Lexer* lexer);
