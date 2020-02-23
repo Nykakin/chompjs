@@ -9,12 +9,25 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     }
 
     struct Lexer lexer = {
+        // input js object
         string,
-        malloc(strlen(string)),
+        // output JSON
+        //
+        // alloc twice the size of input because characters are added when
+        // identifiers are quoted, e.g. from '{a:1}' to  '{"a":1}'
+        // so output might be larger than input, especially for malicious input
+        // such as '{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}' is translated to
+        // '{"a":1,"b":1,"c":1,"d":1,"e":1,"f":1,"g":1,"h":1,"i":1}'
+        malloc(2*strlen(string)),
+        // input string position
         0,
+        // output string position
         0,
+        // initial state
         {begin},
+        // can_advance
         1,
+        // initial stack index
         0,
     };
 

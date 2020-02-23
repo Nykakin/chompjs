@@ -73,6 +73,9 @@ class TestParser(unittest.TestCase):
         result = js_object_parser.parse_js_object("{'a': '123\\'456'}")
         self.assertEqual(result, {'a': "123'456"})
 
+    def test_multiple_identifiers(self):
+        result = js_object_parser.parse_js_object("{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}")
+        self.assertEqual(result, {k: 1 for k in 'abcdefghij'})
 
 if __name__ == '__main__':
     unittest.main()

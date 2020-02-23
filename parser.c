@@ -141,14 +141,9 @@ struct State key(struct Lexer* lexer) {
             c = lexer->input[lexer->input_position];
         }
         emit('"', lexer);
-        if(lexer->input[lexer->input_position-1] == ':') {
-            emit(':', lexer);
-            struct State new_state = {value};
-            return new_state;
-        } else {
-            struct State error_state = {error};
-            return error_state;
-        }
+        lexer->input_position-=1;
+        struct State new_state = {colon};
+        return new_state;
     }
 
     struct State error_state = {error};
