@@ -26,7 +26,7 @@ char next_char(struct Lexer* lexer) {
     return '\0';
 }
 
-char prev_char(struct Lexer* lexer) {
+char last_char(struct Lexer* lexer) {
     int index = lexer->input_position-1;
     while(index > 0) {
         switch(lexer->input[index]) {
@@ -133,7 +133,7 @@ struct State key(struct Lexer* lexer) {
             emit(c, lexer);
         }
     case '}':
-        if(prev_char(lexer) == ',') {
+        if(last_char(lexer) == ',') {
             unemit(lexer);
         }
         emit('}', lexer);
@@ -229,7 +229,7 @@ struct State value(struct Lexer* lexer) {
             emit(c, lexer);
         }
     case ']':
-        if(prev_char(lexer) == ',') {
+        if(last_char(lexer) == ',') {
             unemit(lexer);
         }
         emit(']', lexer);
@@ -242,13 +242,18 @@ struct State value(struct Lexer* lexer) {
             return new_state;
         }
     case '}':
-        if(prev_char(lexer) == ',') {
+        if(last_char(lexer) == ',') {
             unemit(lexer);
         }
         emit('}', lexer);
         pop(lexer);
-        struct State new_dictionary_close_state = {comma_or_close};
-        return new_dictionary_close_state;   
+        if(empty(lexer)) {
+            struct State new_state = {end};
+            return new_state;
+        } else {
+            struct State new_state = {comma_or_close};
+            return new_state;
+        } 
     }
     if(isdigit(c) || c == '.') {
         do {
@@ -303,7 +308,7 @@ struct State comma_or_close(struct Lexer* lexer) {
         }
     case ']':
     case '}':
-        if(prev_char(lexer) == ',') {
+        if(last_char(lexer) == ',') {
             unemit(lexer);
         }
         emit(c, lexer);
