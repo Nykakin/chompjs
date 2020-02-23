@@ -29,7 +29,8 @@ struct Lexer {
     int can_advance;
 
     short stack_index;
-    type stack[10];
+    int stack_size;
+    type *stack;
     char current_quotation;    
 };
 

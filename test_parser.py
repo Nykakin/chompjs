@@ -77,5 +77,9 @@ class TestParser(unittest.TestCase):
         result = js_object_parser.parse_js_object("{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}")
         self.assertEqual(result, {k: 1 for k in 'abcdefghij'})
 
+    def test_depth(self):
+        result = js_object_parser.parse_js_object("[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]")
+        self.assertEqual(result, [[[[[[[[[[[[[[[1]]]]]]]]]]]]]]])
+
 if __name__ == '__main__':
     unittest.main()

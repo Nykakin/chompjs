@@ -29,6 +29,10 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
         1,
         // initial stack index
         0,
+        // initial stack size
+        10,
+        // initial stack
+        malloc(10*sizeof(type))
     };
 
     while(lexer.can_advance) {

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <string.h>
 
@@ -55,6 +56,13 @@ void unemit(struct Lexer* lexer) {
 void push(type t, struct Lexer* lexer) {
     lexer->stack[lexer->stack_index] = t;
     lexer->stack_index += 1;
+    if(lexer->stack_index >= lexer->stack_size) {
+        type* old_stack = lexer->stack;
+        lexer->stack = malloc(2*lexer->stack_size*sizeof(type));
+        memmove(lexer->stack, old_stack, lexer->stack_size);
+        free((type*)old_stack);
+        lexer->stack_size *= 2;
+    }
 }
 
 void pop(struct Lexer* lexer) {
