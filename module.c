@@ -4,7 +4,8 @@
 
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     const char* string;
-    if (!PyArg_ParseTuple(args, "s", &string)) {
+    size_t initial_stack_size = 10;
+    if (!PyArg_ParseTuple(args, "s|n", &string, &initial_stack_size)) {
         return NULL;
     }
 
@@ -30,9 +31,9 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
         // initial stack index
         0,
         // initial stack size
-        10,
+        initial_stack_size,
         // initial stack
-        malloc(10*sizeof(Type))
+        malloc(initial_stack_size*sizeof(Type))
     };
 
     while(lexer.lexer_status == CAN_ADVANCE) {

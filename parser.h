@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 struct Token;
 struct Lexer;
 
@@ -29,13 +31,13 @@ typedef enum {
 struct Lexer {
     const char* input;
     char* output;
-    long input_position;
-    long output_position;
+    size_t input_position;
+    size_t output_position;
     struct State state;
     LexerStatus lexer_status;
 
-    short stack_index;
-    int stack_size;
+    size_t stack_index;
+    size_t stack_size;
     Type *stack;
     char current_quotation;
 };

@@ -63,10 +63,10 @@ void push(Type t, struct Lexer* lexer) {
     lexer->stack[lexer->stack_index] = t;
     lexer->stack_index += 1;
     if(lexer->stack_index >= lexer->stack_size) {
-        Type* old_stack = lexer->stack;
-        lexer->stack = malloc(2*lexer->stack_size*sizeof(Type));
-        memmove(lexer->stack, old_stack, lexer->stack_size);
-        free((Type*)old_stack);
+        Type* new_stack = malloc(2*lexer->stack_size*sizeof(Type));
+        memmove(new_stack, lexer->stack, lexer->stack_size*sizeof(Type));
+        free((Type*)lexer->stack);
+        lexer->stack = new_stack;
         lexer->stack_size *= 2;
     }
 }
