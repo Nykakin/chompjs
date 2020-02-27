@@ -1,5 +1,5 @@
 import unittest
-from js_object_parser import parse_js_object
+from .chompjs import parse_js_object
 
 
 class TestParser(unittest.TestCase):

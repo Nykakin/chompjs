@@ -60,13 +60,13 @@ static PyMethodDef parser_methods[] = {
 
 static struct PyModuleDef parser_definition = { 
     PyModuleDef_HEAD_INIT,
-    "hello",
+    "_chompjs",
     "C extension for fast JavaScript object parsing",
     -1, 
     parser_methods
 };
 
-PyMODINIT_FUNC PyInit_hello(void) {
+PyMODINIT_FUNC PyInit__chompjs(void) {
     Py_Initialize();
     return PyModule_Create(&parser_definition);
 }
