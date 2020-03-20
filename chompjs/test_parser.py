@@ -92,6 +92,17 @@ class TestParser(unittest.TestCase):
         )
         self.assertEqual(result, {'a': [{'b': 1}, {'c': [{'d': {'f': {'g': [1, 2]}}}, {'e': 1}]}]})
 
+    def test_negative_number_literals(self):
+        result = parse_js_object('{"a": -12, "b": - 5}')
+        self.assertEqual(result, {'a': -12, 'b': -5})
+
+    def test_number_literals_with_separators(self):
+        result = parse_js_object('{"a": 12_12}')
+        self.assertEqual(result, {'a': 1212})
+
+    def test_scientific_notation_number_literal(self):
+        result = parse_js_object('{"a": 3.125e7}')
+        self.assertEqual(result, {'a': 3.125e7})
 
 
 class TestParserExceptions(unittest.TestCase):

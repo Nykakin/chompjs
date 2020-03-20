@@ -261,13 +261,18 @@ struct State value(struct Lexer* lexer) {
             return new_state;
         } 
     }
-    if(isdigit(c) || c == '.') {
+    if(isdigit(c) || c == '.' || c == '-') {
         do {
-            emit(c, lexer);
-            c = lexer->input[lexer->input_position];
-        } while(isdigit(c) || c == '.');
+            if(c != '_' && c != ' ') {
+                emit(c, lexer);
+            } else {
+                lexer->input_position += 1;
+            }
+            c = tolower(lexer->input[lexer->input_position]);
+        } while(isdigit(c) || c == '.' || c == '_' || c == ' ' || c == 'e');
+
         struct State new_state = {comma_or_close};
-        return new_state;           
+        return new_state;      
     }
     if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
         emit_string("true", 4, lexer);
