@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import unittest
-from .chompjs import parse_js_object
+from chompjs import parse_js_object
 
 
 class TestParser(unittest.TestCase):
@@ -115,6 +118,7 @@ class TestUnicodeEscape(unittest.TestCase):
     def test_unicode_escape(self):
         result = parse_js_object('{\\\"a\\\": 12}', unicode_escape=True)
         self.assertEqual(result, {'a': 12})
+
 
 if __name__ == '__main__':
     unittest.main()

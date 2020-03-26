@@ -62,6 +62,9 @@ static PyMethodDef parser_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
+
+#if PY_MAJOR_VERSION >= 3
+
 static struct PyModuleDef parser_definition = { 
     PyModuleDef_HEAD_INIT,
     "_chompjs",
@@ -74,3 +77,11 @@ PyMODINIT_FUNC PyInit__chompjs(void) {
     Py_Initialize();
     return PyModule_Create(&parser_definition);
 }
+
+#else
+
+PyObject* init_chompjs(void) {
+    return Py_InitModule("_chompjs", parser_methods);
+}
+
+#endif
