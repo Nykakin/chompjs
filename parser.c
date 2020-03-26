@@ -216,7 +216,8 @@ struct State value(struct Lexer* lexer) {
                 } else if(escaped=='u' || escaped=='U') {
                     lexer->input_position += 1;
                     emit(escaped, lexer);
-                    for(int i=0; i<4; ++i) {
+                    int i;
+                    for(i=0; i<4; ++i) {
                         emit(lexer->input[lexer->input_position], lexer);
                     }
                 } else {
