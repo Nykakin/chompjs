@@ -107,11 +107,27 @@ class TestParser(unittest.TestCase):
         result = parse_js_object('{"a": 3.125e7}')
         self.assertEqual(result, {'a': 3.125e7})
 
+    def test_after_text(self):
+        result = parse_js_object('{"a": {"b": [12, 13, 14]}}text text')
+        self.assertEqual(result, {"a": {"b": [12, 13, 14]}})
+
+    def test_before_text(self):
+        result = parse_js_object('var test = {"a": {"b": [12, 13, 14]}}')
+        self.assertEqual(result, {"a": {"b": [12, 13, 14]}})
+
 
 class TestParserExceptions(unittest.TestCase):
     def test_invalid_input(self):
         with self.assertRaises(ValueError):
             parse_js_object('}{')
+
+    def test_empty_input(self):
+        with self.assertRaises(ValueError):
+            parse_js_object('')
+
+    def test_none_input(self):
+        with self.assertRaises(TypeError):
+            parse_js_object(None)
 
 
 class TestUnicodeEscape(unittest.TestCase):

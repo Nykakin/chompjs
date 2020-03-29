@@ -84,22 +84,30 @@ int empty(struct Lexer* lexer) {
 }
 
 struct State begin(struct Lexer* lexer) {
-    // Assume JSON starts from '{' or '[', otherwise it's an error
-    switch(next_char(lexer)) {
-    case '{':
-        emit('{', lexer);
-        push(DICT, lexer);
-        struct State dictionary_state = {dictionary};
-        return dictionary_state;
-    case '[':
-        push(ARRAY, lexer);
-        emit('[', lexer);
-        struct State array_state = {array};
-        return array_state;
-    default:;
-        struct State error_state = {error};
-        return error_state;
+    // Ignoring characters until either '{' or '[' appears
+    for(;;) {
+        switch(next_char(lexer)) {
+        case '{':
+            emit('{', lexer);
+            push(DICT, lexer);
+            struct State dictionary_state = {dictionary};
+            return dictionary_state;
+        break;
+        case '[':
+            push(ARRAY, lexer);
+            emit('[', lexer);
+            struct State array_state = {array};
+            return array_state;
+        break;
+        case '\0':;
+            struct State error_state = {error};
+            return error_state;       
+        default:;
+            lexer->input_position += 1;
+        }
     }
+    struct State error_state = {error};
+    return error_state;
 }
 
 struct State dictionary(struct Lexer* lexer) {
