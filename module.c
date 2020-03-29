@@ -19,9 +19,8 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     free((char*)lexer.output);
     free((Type*)lexer.stack);
     if(lexer.lexer_status == ERROR) {
-        char error_message[50];
-        strcpy(error_message, "Parser error: ...");
-        strncpy(error_message+17, lexer.input+lexer.input_position, 30);
+        char error_message[30];
+        strncpy(error_message, lexer.input+lexer.input_position, 30);
 
         PyErr_SetString(PyExc_ValueError, error_message);
         return NULL;

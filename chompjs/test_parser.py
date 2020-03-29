@@ -126,7 +126,7 @@ class TestParserExceptions(unittest.TestCase):
             parse_js_object('')
 
     def test_none_input(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             parse_js_object(None)
 
 
