@@ -43,3 +43,4 @@ struct Lexer {
 };
 
 void advance(struct Lexer* lexer);
+void init(struct Lexer* lexer, const char* string, size_t initial_stack_size);

@@ -6,6 +6,25 @@
 #include <ctype.h>
 #include <string.h>
 
+void init(struct Lexer* lexer, const char* string, size_t initial_stack_size) {
+    lexer->input = string,
+    // for output alloc twice the size of input because characters are added
+    // when identifiers are quoted, e.g. from '{a:1}' to  '{"a":1}'
+    // so output might be larger than input, especially for malicious input
+    // such as '{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}' that is translated to
+    // '{"a":1,"b":1,"c":1,"d":1,"e":1,"f":1,"g":1,"h":1,"i":1}'
+    lexer->output = malloc(2*strlen(string));
+    lexer->input_position = 0;
+    lexer->output_position = 0;
+    struct State begin_state = {begin};
+    lexer->state = begin_state;
+    lexer->lexer_status = CAN_ADVANCE;
+    lexer->stack_index = 0;
+    lexer->stack_size = initial_stack_size;
+    lexer->stack = malloc(initial_stack_size*sizeof(Type));
+    lexer->current_quotation = '\0';
+}
+
 void advance(struct Lexer* lexer) {
     lexer->state = lexer->state.change(lexer);
 }
