@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <Python.h>
+#include <stdio.h>
 #include "parser.h"
 
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {

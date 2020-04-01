@@ -11,11 +11,16 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 
-chompjs_extension = Extension('_chompjs', sources=['module.c', 'parser.c'])
+chompjs_extension = Extension(
+    '_chompjs',
+    sources=['module.c', 'parser.c'],
+    extra_compile_args=['-Wl,-Bsymbolic-functions'],
+    extra_link_args=['-Wl,-Bsymbolic-functions'],
+)
 
 setup(
     name='chompjs',
-    version='1.0.6',
+    version='1.0.7',
     description='Parsing JavaScript objects into Python dictionaries',
     author='Mariusz Obajtek',
     author_email='nykakin@gmail.com',
