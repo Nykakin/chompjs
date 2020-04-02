@@ -72,9 +72,9 @@ class TestParser(unittest.TestCase):
         result = parse_js_object("{'a': true, 'b': false, 'c': null}")
         self.assertEqual(result, {'a': True, 'b': False, 'c': None})
 
-    def test_quoted_strings(self):
-        result = parse_js_object("{'a': '123\\'456'}")
-        self.assertEqual(result, {'a': "123'456"})
+    def test_escaped_text(self):
+        result = parse_js_object("{'a': '123\\'456\\n'}")
+        self.assertEqual(result, {'a': "123\"456\n"})
 
     def test_multiple_identifiers(self):
         result = parse_js_object("{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}")
@@ -84,9 +84,13 @@ class TestParser(unittest.TestCase):
         result = parse_js_object("[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]")
         self.assertEqual(result, [[[[[[[[[[[[[[[1]]]]]]]]]]]]]]])
 
-    def test_unicode(self):
+    def test_unicode_values(self):
         result = parse_js_object("['\u00E9']")
         self.assertEqual(result, ['é'])
+
+    def test_unicode_keys(self):
+        result = parse_js_object('{"cache":{"\u002Ftest\u002F": 0}}')
+        self.assertEqual(result, {'cache': {'/test/': 0}})
 
     def test_stack(self):
         result = parse_js_object(

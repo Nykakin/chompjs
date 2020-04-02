@@ -147,14 +147,21 @@ struct State key(struct Lexer* lexer) {
             c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
-                char escaped = lexer->input[lexer->input_position+1];
-                if(escaped== '`' || escaped == '\'') {
+                emit('\\', lexer);
+                char escaped = lexer->input[lexer->input_position];
+                if(escaped == lexer->current_quotation) {
+                    lexer->input_position += 1;
+                    emit('"', lexer);
+                    lexer->input_position -= 1;
+                } else if(escaped=='u' || escaped=='U') {
+                    emit(escaped, lexer);
+                    emit_string((char*)lexer->input+lexer->input_position, 4, lexer);
+                } else {
                     lexer->input_position += 1;
                     emit(escaped, lexer);
-                } else {
-                    emit('\\', lexer);
-                    emit(escaped, lexer);
+                    lexer->input_position -= 1;
                 }
+                continue;
             }
             // if we're closing the quotations, we're done with the string
             if(c == lexer->current_quotation) {
@@ -231,25 +238,23 @@ struct State value(struct Lexer* lexer) {
     case '`':
         lexer->current_quotation = c;
         emit('"', lexer);
-        
         while(1) {
             c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
-                char escaped = lexer->input[lexer->input_position+1];
-                if(escaped== '`' || escaped == '\'') {
+                emit('\\', lexer);
+                char escaped = lexer->input[lexer->input_position];
+                if(escaped == lexer->current_quotation) {
                     lexer->input_position += 1;
-                    emit(escaped, lexer);
+                    emit('"', lexer);
+                    lexer->input_position -= 1;
                 } else if(escaped=='u' || escaped=='U') {
+                    emit(escaped, lexer);
+                    emit_string((char*)lexer->input+lexer->input_position, 4, lexer);
+                } else {
                     lexer->input_position += 1;
                     emit(escaped, lexer);
-                    int i;
-                    for(i=0; i<4; ++i) {
-                        emit(lexer->input[lexer->input_position], lexer);
-                    }
-                } else {
-                    emit('\\', lexer);
-                    emit(escaped, lexer);
+                    lexer->input_position -= 1;
                 }
                 continue;
             }
