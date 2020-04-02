@@ -141,7 +141,38 @@ struct State key(struct Lexer* lexer) {
     case '"':
     case '`':
         lexer->current_quotation = c;
+        emit('"', lexer);
 
+        while(1) {
+            c = lexer->input[lexer->input_position];
+            // handle escape sequences such as \\ and \'
+            if(c == '\\'){
+                emit('\\', lexer);
+                char escaped = lexer->input[lexer->input_position];
+                if(escaped== '`' || escaped == '\'') {
+                    lexer->input_position += 1;
+                    emit(escaped, lexer);
+                } else if(escaped=='u' || escaped=='U') {
+                    emit(escaped, lexer);
+                    int i;
+                    for(i=0; i<4; ++i) {
+                        emit(lexer->input[lexer->input_position], lexer);
+                    }
+                } else {
+                    emit('\\', lexer);
+                    emit(escaped, lexer);
+                }
+                continue;
+            }
+            // if we're closing the quotations, we're done with the string
+            if(c == lexer->current_quotation) {
+                emit('"', lexer);
+                struct State new_state = {colon};
+                return new_state;
+            }
+            // otherwise, emit character
+            emit(c, lexer);
+        }
     case '}':
         if(last_char(lexer) == ',') {
             unemit(lexer);
