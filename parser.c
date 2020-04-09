@@ -179,19 +179,8 @@ struct State key(struct Lexer* lexer) {
         }
         emit('}', lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            if(!lexer->is_jsonlines) {
-                struct State new_state = {end};
-                return new_state;
-            } else {
-                emit('\0', lexer);
-                struct State new_state = {begin};
-                return new_state;                
-            }
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        }
+        struct State new_state = {comma_or_close};
+        return new_state;
     }
     if(isalnum(c)) {
         emit('"', lexer);
@@ -280,38 +269,16 @@ struct State value(struct Lexer* lexer) {
         }
         emit(']', lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            if(!lexer->is_jsonlines) {
-                struct State new_state = {end};
-                return new_state;
-            } else {
-                emit('\0', lexer);
-                struct State new_state = {begin};
-                return new_state;                
-            }
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        }
+        struct State new_array_close_state = {comma_or_close};
+        return new_array_close_state;
     case '}':
         if(last_char(lexer) == ',') {
             unemit(lexer);
         }
         emit('}', lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            if(!lexer->is_jsonlines) {
-                struct State new_state = {end};
-                return new_state;
-            } else {
-                emit('\0', lexer);
-                struct State new_state = {begin};
-                return new_state;                
-            }
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        } 
+        struct State new_dictionary_close_state = {comma_or_close};
+        return new_dictionary_close_state;
     }
     if(isdigit(c) || c == '.' || c == '-') {
         do {
@@ -345,6 +312,17 @@ struct State value(struct Lexer* lexer) {
 }
 
 struct State comma_or_close(struct Lexer* lexer) {
+    if(empty(lexer)) {
+        if(!lexer->is_jsonlines) {
+            struct State new_state = {end};
+            return new_state;
+        } else {
+            emit('\0', lexer);
+            struct State new_state = {begin};
+            return new_state;                
+        }
+    } 
+
     char c = next_char(lexer);
     switch(c) {
     case ',':
@@ -366,19 +344,8 @@ struct State comma_or_close(struct Lexer* lexer) {
         }
         emit(c, lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            if(!lexer->is_jsonlines) {
-                struct State new_state = {end};
-                return new_state;
-            } else {
-                emit('\0', lexer);
-                struct State new_state = {begin};
-                return new_state;                
-            }
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        }
+        struct State new_state = {comma_or_close};
+        return new_state;
     default:;
         struct State error_state = {error};
         return error_state;
