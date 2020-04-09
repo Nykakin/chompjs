@@ -5,17 +5,18 @@
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     const char* string;
     size_t initial_stack_size = 10;
-    if (!PyArg_ParseTuple(args, "s|n", &string, &initial_stack_size)) {
+    int is_jsonlines = 0;
+    if (!PyArg_ParseTuple(args, "s|np", &string, &initial_stack_size, &is_jsonlines)) {
         return NULL;
     }
 
     struct Lexer lexer;
-    init(&lexer, string, initial_stack_size);
+    init(&lexer, string, initial_stack_size, is_jsonlines);
     while(lexer.lexer_status == CAN_ADVANCE) {
         advance(&lexer);
     }
 
-    PyObject* ret = Py_BuildValue("s", lexer.output);
+    PyObject* ret = Py_BuildValue("s#", lexer.output, lexer.output_position-1);
     free((char*)lexer.output);
     free((Type*)lexer.stack);
     if(lexer.lexer_status == ERROR) {
