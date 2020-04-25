@@ -119,6 +119,10 @@ class TestParser(unittest.TestCase):
         result = parse_js_object('var test = {"a": {"b": [12, 13, 14]}}')
         self.assertEqual(result, {"a": {"b": [12, 13, 14]}})
 
+    def test_parse_jsonlines(self):
+        result = parse_js_object('["Test\\nDrive"]\n{"Test": "Drive"}', jsonlines=True)
+        self.assertEqual(result, [['Test\nDrive'], {'Test': 'Drive'}])
+
 
 class TestParserExceptions(unittest.TestCase):
     def test_invalid_input(self):

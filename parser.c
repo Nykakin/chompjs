@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <string.h>
 
-void init(struct Lexer* lexer, const char* string, size_t initial_stack_size) {
+void init(struct Lexer* lexer, const char* string, size_t initial_stack_size, int is_jsonlines) {
     lexer->input = string,
     // for output alloc twice the size of input because characters are added
     // when identifiers are quoted, e.g. from '{a:1}' to  '{"a":1}'
@@ -23,6 +23,7 @@ void init(struct Lexer* lexer, const char* string, size_t initial_stack_size) {
     lexer->stack_size = initial_stack_size;
     lexer->stack = malloc(initial_stack_size*sizeof(Type));
     lexer->current_quotation = '\0';
+    lexer->is_jsonlines = is_jsonlines;
 }
 
 void advance(struct Lexer* lexer) {
@@ -119,8 +120,8 @@ struct State begin(struct Lexer* lexer) {
             return array_state;
         break;
         case '\0':;
-            struct State error_state = {error};
-            return error_state;       
+            struct State end_state = {end};
+            return end_state;     
         default:;
             lexer->input_position += 1;
         }
@@ -178,13 +179,8 @@ struct State key(struct Lexer* lexer) {
         }
         emit('}', lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            struct State new_state = {end};
-            return new_state;
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        }
+        struct State new_state = {comma_or_close};
+        return new_state;
     }
     if(isalnum(c)) {
         emit('"', lexer);
@@ -273,26 +269,16 @@ struct State value(struct Lexer* lexer) {
         }
         emit(']', lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            struct State new_state = {end};
-            return new_state;
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        }
+        struct State new_array_close_state = {comma_or_close};
+        return new_array_close_state;
     case '}':
         if(last_char(lexer) == ',') {
             unemit(lexer);
         }
         emit('}', lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            struct State new_state = {end};
-            return new_state;
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        } 
+        struct State new_dictionary_close_state = {comma_or_close};
+        return new_dictionary_close_state;
     }
     if(isdigit(c) || c == '.' || c == '-') {
         do {
@@ -326,6 +312,17 @@ struct State value(struct Lexer* lexer) {
 }
 
 struct State comma_or_close(struct Lexer* lexer) {
+    if(empty(lexer)) {
+        if(!lexer->is_jsonlines) {
+            struct State new_state = {end};
+            return new_state;
+        } else {
+            emit('\0', lexer);
+            struct State new_state = {begin};
+            return new_state;                
+        }
+    } 
+
     char c = next_char(lexer);
     switch(c) {
     case ',':
@@ -347,13 +344,8 @@ struct State comma_or_close(struct Lexer* lexer) {
         }
         emit(c, lexer);
         pop(lexer);
-        if(empty(lexer)) {
-            struct State new_state = {end};
-            return new_state;
-        } else {
-            struct State new_state = {comma_or_close};
-            return new_state;
-        }
+        struct State new_state = {comma_or_close};
+        return new_state;
     default:;
         struct State error_state = {error};
         return error_state;
@@ -361,13 +353,15 @@ struct State comma_or_close(struct Lexer* lexer) {
 }
 
 struct State end(struct Lexer* lexer) {
-    lexer->output[lexer->output_position] = '\0';
+    if(!lexer->is_jsonlines) {
+        emit('\0', lexer);
+    }
     lexer->lexer_status = FINISHED;
     return lexer->state;
 }
 
 struct State error(struct Lexer* lexer) {
-    lexer->output[lexer->output_position] = '\0';
+    emit('\0', lexer);
     lexer->lexer_status = ERROR;
     return lexer->state;
 }

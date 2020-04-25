@@ -6,7 +6,7 @@ import sys
 from _chompjs import parse
 
 
-def parse_js_object(string, initial_stack_size=10, unicode_escape=False):
+def parse_js_object(string, initial_stack_size=10, unicode_escape=False, jsonlines=False):
     if not string:
         raise ValueError('Invalid input')
     if unicode_escape:
@@ -19,7 +19,7 @@ def parse_js_object(string, initial_stack_size=10, unicode_escape=False):
     # only to change exception message
     exception = None
     try:
-        parsed_json = parse(string, initial_stack_size)
+        parsed_data = parse(string, initial_stack_size, jsonlines)
     except ValueError as e:
         exception = e
     if exception:
@@ -28,4 +28,7 @@ def parse_js_object(string, initial_stack_size=10, unicode_escape=False):
         else:
             raise ValueError("Parser error: ... {}".format(str(exception).encode('utf-8')))
 
-    return json.loads(parsed_json)
+    if jsonlines:
+        return [json.loads(j) for j in parsed_data.split('\0')]
+    else:
+        return json.loads(parsed_data)

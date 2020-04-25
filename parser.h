@@ -40,7 +40,8 @@ struct Lexer {
     size_t stack_size;
     Type *stack;
     char current_quotation;
+    int is_jsonlines;
 };
 
 void advance(struct Lexer* lexer);
-void init(struct Lexer* lexer, const char* string, size_t initial_stack_size);
+void init(struct Lexer* lexer, const char* string, size_t initial_stack_size, int is_jsonlines);
