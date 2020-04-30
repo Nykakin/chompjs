@@ -64,6 +64,11 @@ void emit(char c, struct Lexer* lexer) {
     lexer->input_position += 1;
 }
 
+void emit_without_advancing(char c, struct Lexer* lexer) {
+    lexer->output[lexer->output_position] = c;
+    lexer->output_position += 1;
+}
+
 void emit_string(char *s, int size, struct Lexer* lexer) {
     memcpy(lexer->output+lexer->output_position, s, size);
     lexer->output_position += size;
@@ -306,6 +311,34 @@ struct State value(struct Lexer* lexer) {
         emit_string("null", 4, lexer);
         struct State new_dictionary_close_state = {comma_or_close};
         return new_dictionary_close_state;
+    }
+    // Handle unusual values such as /d+/ or undefined
+    emit_without_advancing('"', lexer);
+    while(1) {
+        c = lexer->input[lexer->input_position];
+        switch(c) {
+        case(','):
+            emit_without_advancing('"', lexer);
+            struct State comma_or_close_state = {comma_or_close};
+            return comma_or_close_state;
+        case ']':
+            emit_without_advancing('"', lexer);
+            emit(']', lexer);
+            pop(lexer);
+            struct State new_array_close_state = {comma_or_close};
+            return new_array_close_state;
+        case '}':
+            emit_without_advancing('"', lexer);
+            emit('}', lexer);
+            pop(lexer);
+            struct State new_dictionary_close_state = {comma_or_close};
+            return new_dictionary_close_state;
+        case '\0':;
+            struct State error_state = {error};
+            return error_state;
+        default:
+            emit(c, lexer);
+        }
     }
 
     struct State error_state = {error};

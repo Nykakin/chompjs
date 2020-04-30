@@ -131,6 +131,13 @@ class TestParser(unittest.TestCase):
         result = parse_js_object('''{"a": "b\\'"}''')
         self.assertEqual(result, {'a': "b'"})
 
+    def test_unusual_values(self):
+        result = parse_js_object('{"a": undefined}')
+        self.assertEqual(result, {"a": "undefined"})
+
+        result = parse_js_object('[undefined, undefined]')
+        self.assertEqual(result, ["undefined", "undefined"])
+
 
 class TestParserExceptions(unittest.TestCase):
     def test_invalid_input(self):
