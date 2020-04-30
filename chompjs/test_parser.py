@@ -74,7 +74,7 @@ class TestParser(unittest.TestCase):
 
     def test_escaped_text(self):
         result = parse_js_object("{'a': '123\\'456\\n'}")
-        self.assertEqual(result, {'a': "123\"456\n"})
+        self.assertEqual(result, {'a': "123'456\n"})
 
     def test_multiple_identifiers(self):
         result = parse_js_object("{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}")
@@ -125,7 +125,11 @@ class TestParser(unittest.TestCase):
 
     def test_windows_newlines(self):
         result = parse_js_object('{"a":\r\n10}')
-        self.assertEqual(result, {'a': 10})                
+        self.assertEqual(result, {'a': 10})
+
+    def test_escaped_single_quotes(self):
+        result = parse_js_object('''{"a": "b\\'"}''')
+        self.assertEqual(result, {'a': "b'"})
 
 
 class TestParserExceptions(unittest.TestCase):
