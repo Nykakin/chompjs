@@ -233,7 +233,13 @@ struct State value(struct Lexer* lexer) {
             c = lexer->input[lexer->input_position];
             // handle escape sequences such as \\ and \'
             if(c == '\\'){
-                emit('\\', lexer);
+                if(lexer->input[lexer->input_position+1] != '\'') {
+                    emit('\\', lexer);
+                } else {
+                    emit('\'', lexer);
+                    lexer->input_position += 1;
+                    continue;
+                }
                 char escaped = lexer->input[lexer->input_position];
                 if(escaped == lexer->current_quotation) {
                     lexer->input_position += 1;
