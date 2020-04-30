@@ -123,6 +123,10 @@ class TestParser(unittest.TestCase):
         result = parse_js_object('["Test\\nDrive"]\n{"Test": "Drive"}', jsonlines=True)
         self.assertEqual(result, [['Test\nDrive'], {'Test': 'Drive'}])
 
+    def test_windows_newlines(self):
+        result = parse_js_object('{"a":\r\n10}')
+        self.assertEqual(result, {'a': 10})                
+
 
 class TestParserExceptions(unittest.TestCase):
     def test_invalid_input(self):
