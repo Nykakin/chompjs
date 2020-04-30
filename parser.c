@@ -32,16 +32,11 @@ void advance(struct Lexer* lexer) {
 
 char next_char(struct Lexer* lexer) {
     while(1) {
-        switch(lexer->input[lexer->input_position]) {
-        case ' ':
-        case '\n':
-        case '\t':
+        if(isspace(lexer->input[lexer->input_position])) {
             lexer->input_position += 1;
             continue;
-        break;
-        default:
-            return lexer->input[lexer->input_position];
         }
+        return lexer->input[lexer->input_position];
     }
     return '\0';
 }
