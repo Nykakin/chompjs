@@ -138,6 +138,10 @@ class TestParser(unittest.TestCase):
         result = parse_js_object('[undefined, undefined]')
         self.assertEqual(result, ["undefined", "undefined"])
 
+    def test_special_characters(self):
+        result = parse_js_object("{_a: 1, $b: 2}")
+        self.assertEqual(result, {"_a": 1, "$b": 2})
+
 
 class TestParserExceptions(unittest.TestCase):
     def test_invalid_input(self):

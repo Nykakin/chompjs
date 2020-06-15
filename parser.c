@@ -182,7 +182,7 @@ struct State key(struct Lexer* lexer) {
         struct State new_state = {comma_or_close};
         return new_state;
     }
-    if(isalnum(c)) {
+    if(isalnum(c) || c == '$' || c == '_') {
         emit('"', lexer);
         lexer->input_position -= 1;
         while(isalnum(c) || c == '$' || c == '_') {
