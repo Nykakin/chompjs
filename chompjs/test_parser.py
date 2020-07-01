@@ -143,8 +143,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result, {"_a": 1, "$b": 2})
 
     def test_floats_without_leading_zero(self):
-        result = parse_js_object('{"a": .99}')
-        self.assertEqual(result, {"a": 0.99})
+        result = parse_js_object('{"a": .99, "b": -.1}')
+        self.assertEqual(result, {"a": 0.99, "b": -.1})
 
 
 class TestParserExceptions(unittest.TestCase):
