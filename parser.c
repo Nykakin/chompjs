@@ -287,6 +287,14 @@ struct State value(struct Lexer* lexer) {
         return new_dictionary_close_state;
     }
     if(isdigit(c) || c == '.' || c == '-') {
+        if(c == '-') {
+            emit('-', lexer);
+            c = tolower(lexer->input[lexer->input_position]);
+        }
+        if(c == '.') {
+            emit_without_advancing('0', lexer);
+        }
+
         do {
             if(c != '_' && c != ' ') {
                 emit(c, lexer);
