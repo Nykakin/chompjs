@@ -6,7 +6,7 @@ import sys
 from _chompjs import parse
 
 
-def parse_js_object(string, initial_stack_size=10, unicode_escape=False, jsonlines=False):
+def parse_js_object(string, unicode_escape=False, jsonlines=False, initial_stack_size=10):
     if not string:
         raise ValueError('Invalid input')
     if unicode_escape:

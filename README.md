@@ -1,50 +1,155 @@
-```bash
-$ python
-Python 3.7.3 (default, Oct  7 2019, 12:56:13) 
-[GCC 8.3.0] on linux
-Type "help", "copyright", "credits" or "license" for more information.
+# Usage
+
+`chompjs` can be used in web scrapping for turning JavaScript objects embedded in pages into valid Python dictionaries.
+
+```python
 >>> import chompjs
->>> import pprint
->>> json_data = chompjs.parse_js_object("""{
-...     '152065' : {
-...         canonicalURL: 'https://www.chewy.com/living-world-cuttlebone-bird-treat-2/dp/152065',
-...         ajaxURL: `/living-world-cuttlebone-bird-treat-2/dp/152065?features`,
-...         sku: 124945,
-...         images: [
-...             '//img.chewy.com/is/image/catalog/124945_MAIN._AC_SL400_V1495567031_.jpg',
-...             '//img.chewy.com/is/image/catalog/124945_PT2._AC_SL320_V1497994333_.jpg',
-...         ],
-...         price: '$1.69'
-...     },
-...     '131457' : {
-...         canonicalURL: 'https://www.chewy.com/living-world-cuttlebone-bird-treat/dp/131457',
-...         ajaxURL: `/living-world-cuttlebone-bird-treat/dp/131457?features`,
-...         sku: 103970,
-...         images: [
-...             '//img.chewy.com/is/catalog/103970._AC_SL400_V1469015482_.jpg',
-...             '//img.chewy.com/is/image/catalog/103970_PT1._AC_SL320_V1518213672_.jpg',
-...         ],
-...         price: '$5.91'
-...     }
-... }""")
-
->>> pprint.pprint(json_data)
-{'131457': {'ajaxURL': '/living-world-cuttlebone-bird-treat/dp/131457?features',
-            'canonicalURL': 'https://www.chewy.com/living-world-cuttlebone-bird-treat/dp/131457',
-            'images': ['//img.chewy.com/is/catalog/103970._AC_SL400_V1469015482_.jpg',
-                       '//img.chewy.com/is/image/catalog/103970_PT1._AC_SL320_V1518213672_.jpg'],
-            'price': '$5.91',
-            'sku': 103970},
- '152065': {'ajaxURL': '/living-world-cuttlebone-bird-treat-2/dp/152065?features',
-            'canonicalURL': 'https://www.chewy.com/living-world-cuttlebone-bird-treat-2/dp/152065',
-            'images': ['//img.chewy.com/is/image/catalog/124945_MAIN._AC_SL400_V1495567031_.jpg',
-                       '//img.chewy.com/is/image/catalog/124945_PT2._AC_SL320_V1497994333_.jpg'],
-            'price': '$1.69',
-            'sku': 124945}}
-
+>>> chompjs.parse_js_object('{"my_data": "test"}')
+{u'my_data': u'test'}
 ```
 
-### Installation
+An example usage with `scrapy`:
+
+```python
+import chompjs
+import scrapy
+
+
+class MySpider(scrapy.Spider):
+    # ...
+
+    def parse(self, response):
+        script_css = 'script:contains("__NEXT_DATA__")::text'
+        script_pattern = r'__NEXT_DATA__ = (.*);'
+        # warning: for some pages you need to pass replace_entities=True
+        # to re_first to have JSON escaped properly
+        script_text = response.css(script_css).re_first(script_pattern)
+        try:
+            json_data = chompjs.parse_js_object(script_text)
+        except ValueError:
+            self.log('Failed to extract data from {}'.format(response.url))
+            return
+
+        # work on json_data
+```
+
+If the input string is not yet escaped and contains a lot of `\\` characters, then `unicode_escape=True` argument might help to sanitize it:
+
+```python
+>>> chompjs.parse_js_object('{\\\"a\\\": 12}', unicode_escape=True)
+{u'a': 12}
+```
+
+`jsonlines=True` can be used to parse JSON Lines:
+
+```python
+>>> chompjs.parse_js_object('[1,2]\n[2,3]\n[3,4]', jsonlines=True)
+[[1, 2], [2, 3], [3, 4]]
+```
+
+# Rationale
+
+In web scraping data is often present not in HTML tags but provided as an embedded JavaScript object that is later  used to initialize the page, for example:
+
+```html
+<html>
+<head>...</head>
+<body>
+...
+<script type="text/javascript">window.__PRELOADED_STATE__={"foo": "bar"}</script>
+...
+</body>
+</html>
+```
+
+Standard library module utility `json.loads` is usually sufficient to extract this data:
+
+```python
+>>> import json
+>>> script_text = response.css('script:contains(__PRELOADED_STATE__)::text').re_first('__PRELOADED_STATE__=(.*)')
+>>> json.loads(script_text)
+{u'foo': u'bar'}
+
+```
+The problem is that not all valid JavaScript objects are also valid JSONs. For example all those strings are valid JSON objects but not valid JSONs:
+
+* `"{'a': 'b'}"` is not a valid JSON because it's not quoted with `"` characters4
+* `'{a: "b"}'`is not a valid JSON because property name is not quoted at all
+* `'{"a": [1, 2, 3,]}'` is not a valid JSON because there's an extra `,` character at the end of the array
+* `'{"a": .99}'` is not a valid JSON because float value lacks a leading 0
+
+As a result, `json.loads` fail to extract any of those:
+
+```
+>>> json.loads("{'a': 'b'}")
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "/usr/lib/python2.7/json/__init__.py", line 339, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python2.7/json/decoder.py", line 364, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python2.7/json/decoder.py", line 380, in raw_decode
+    obj, end = self.scan_once(s, idx)
+ValueError: Expecting property name: line 1 column 2 (char 1)
+>>> json.loads('{a: "b"}')
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "/usr/lib/python2.7/json/__init__.py", line 339, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python2.7/json/decoder.py", line 364, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python2.7/json/decoder.py", line 380, in raw_decode
+    obj, end = self.scan_once(s, idx)
+ValueError: Expecting property name: line 1 column 2 (char 1)
+>>> json.loads('{"a": [1, 2, 3,]}')
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "/usr/lib/python2.7/json/__init__.py", line 339, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python2.7/json/decoder.py", line 364, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python2.7/json/decoder.py", line 382, in raw_decode
+    raise ValueError("No JSON object could be decoded")
+ValueError: No JSON object could be decoded
+>>> json.loads('{"a": .99}')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/usr/lib/python3.7/json/__init__.py", line 348, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.7/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.7/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
+```
+`chompjs` library was designed to bypass this limitation and it allows to scrape such JavaScript objects into proper Python dictionaries:
+
+```
+>>> import chompjs
+>>> 
+>>> chompjs.parse_js_object("{'a': 'b'}")
+{u'a': u'b'}
+>>> chompjs.parse_js_object('{a: "b"}')
+{u'a': u'b'}
+>>> chompjs.parse_js_object('{"a": [1, 2, 3,]}')
+{u'a': [1, 2, 3]}
+```
+
+Internally `chompjs` use a parser written in C to iterate over raw string, fixing issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full blown JavaScript parsers such as `demjson`.
+
+```
+>>> import json
+>>> import _chompjs
+>>> 
+>>> _chompjs.parse('{a: 1}')
+'{"a":1}'
+>>> json.loads(_)
+{u'a': 1}
+>>> chompjs.parse_js_object('{"a": .99}')
+{'a': 0.99}
+```
+
+# Installation
 
 ```bash
 $ python3 -m venv venv
@@ -53,6 +158,7 @@ $ . venv/bin/activate
 ```
 
 To run unittests
+
 ```
 $ python -m unittest
 ```
