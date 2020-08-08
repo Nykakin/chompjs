@@ -47,9 +47,16 @@ If the input string is not yet escaped and contains a lot of `\\` characters, th
 [[1, 2], [2, 3], [3, 4]]
 ```
 
+By default `chompjs` tries to start with first `{` or `[` character it founds, omitting the rest:
+
+```python
+>>> chompjs.parse_js_object('<div>...</div><script>foo = [1, 2, 3];</script><div>...</div>')
+[1, 2, 3]
+```
+
 # Rationale
 
-In web scraping data is often present not in HTML tags but provided as an embedded JavaScript object that is later  used to initialize the page, for example:
+In web scraping data is often present not in HTML, but provided as an embedded JavaScript object that is later used to initialize the page, for example:
 
 ```html
 <html>
@@ -65,6 +72,7 @@ In web scraping data is often present not in HTML tags but provided as an embedd
 Standard library module utility `json.loads` is usually sufficient to extract this data:
 
 ```python
+>>> # scrapy shell file:///tmp/test.html
 >>> import json
 >>> script_text = response.css('script:contains(__PRELOADED_STATE__)::text').re_first('__PRELOADED_STATE__=(.*)')
 >>> json.loads(script_text)
