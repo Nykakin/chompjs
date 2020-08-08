@@ -73,9 +73,9 @@ Standard library module utility `json.loads` is usually sufficient to extract th
 ```
 The problem is that not all valid JavaScript objects are also valid JSONs. For example all those strings are valid JSON objects but not valid JSONs:
 
-* `"{'a': 'b'}"` is not a valid JSON because it's not quoted with `"` characters4
+* `"{'a': 'b'}"` is not a valid JSON because it use `'` character to quote
 * `'{a: "b"}'`is not a valid JSON because property name is not quoted at all
-* `'{"a": [1, 2, 3,]}'` is not a valid JSON because there's an extra `,` character at the end of the array
+* `'{"a": [1, 2, 3,]}'` is not a valid JSON because there is an extra `,` character at the end of the array
 * `'{"a": .99}'` is not a valid JSON because float value lacks a leading 0
 
 As a result, `json.loads` fail to extract any of those:
@@ -121,6 +121,7 @@ Traceback (most recent call last):
   File "/usr/lib/python3.7/json/decoder.py", line 355, in raw_decode
     raise JSONDecodeError("Expecting value", s, err.value) from None
 json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
+
 ```
 `chompjs` library was designed to bypass this limitation and it allows to scrape such JavaScript objects into proper Python dictionaries:
 
