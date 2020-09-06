@@ -127,6 +127,9 @@ class TestParser(unittest.TestCase):
         result = parse_js_object('{"a":\r\n10}')
         self.assertEqual(result, {'a': 10})
 
+        result = parse_js_object("{'foo': 0,\r\n}")
+        self.assertEqual(result, {'foo': 0})
+
     def test_escaped_single_quotes(self):
         result = parse_js_object('''{"a": "b\\'"}''')
         self.assertEqual(result, {'a': "b'"})
