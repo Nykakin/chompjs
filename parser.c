@@ -44,14 +44,10 @@ char next_char(struct Lexer* lexer) {
 char last_char(struct Lexer* lexer) {
     int index = lexer->input_position-1;
     while(index > 0) {
-        switch(lexer->input[index]) {
-        case ' ':
-        case '\n':
-        case '\t':
+        if(isspace(lexer->input[index])) {
             index -= 1;
             continue;
-        break;
-        default:
+        } else {
             return lexer->input[index];
         }
     }
