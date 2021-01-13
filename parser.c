@@ -13,7 +13,8 @@ void init(struct Lexer* lexer, const char* string, size_t initial_stack_size, in
     // so output might be larger than input, especially for malicious input
     // such as '{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}' that is translated to
     // '{"a":1,"b":1,"c":1,"d":1,"e":1,"f":1,"g":1,"h":1,"i":1}'
-    lexer->output = malloc(2*strlen(string));
+    lexer->output_size = 2 * strlen(string);
+    lexer->output = malloc(lexer->output_size);
     lexer->input_position = 0;
     lexer->output_position = 0;
     struct State begin_state = {begin};
@@ -58,6 +59,15 @@ void emit(char c, struct Lexer* lexer) {
     lexer->output[lexer->output_position] = c;
     lexer->output_position += 1;
     lexer->input_position += 1;
+}
+
+int safe_emit(char c, struct Lexer* lexer) {
+    if(lexer->output_position > lexer->output_size) {
+        return 0;
+    } else {
+        emit(c, lexer);
+        return 1;
+    }
 }
 
 void emit_without_advancing(char c, struct Lexer* lexer) {
@@ -167,7 +177,10 @@ struct State key(struct Lexer* lexer) {
                 return new_state;
             }
             // otherwise, emit character
-            emit(c, lexer);
+            if(!safe_emit(c, lexer)) {
+                struct State error_state = {error};
+                return error_state;
+            }
         }
     case '}':
         if(last_char(lexer) == ',') {
@@ -263,7 +276,10 @@ struct State value(struct Lexer* lexer) {
                 return new_state;            
             }
             // otherwise, emit character
-            emit(c, lexer);
+            if(!safe_emit(c, lexer)) {
+                struct State error_state = {error};
+                return error_state;
+            }
         }
     case ']':
         if(last_char(lexer) == ',') {
