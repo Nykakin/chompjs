@@ -1,5 +1,4 @@
-1.0.17
-* Handle memory corruption on unclosed quotations (#13)
+1.1.0
 
 1.0.16
 * Handle floats with leading zeros (#10)

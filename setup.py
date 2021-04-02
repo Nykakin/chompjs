@@ -19,14 +19,14 @@ if system() == 'Linux':
 
 chompjs_extension = Extension(
     '_chompjs',
-    sources=['module.c', 'parser.c'],
+    sources=['module.c', 'parser.c', 'buffer.c'],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
 )
 
 setup(
     name='chompjs',
-    version='1.0.17',
+    version='1.1.0',
     description='Parsing JavaScript objects into Python dictionaries',
     author='Mariusz Obajtek',
     author_email='nykakin@gmail.com',

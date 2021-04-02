@@ -15,14 +15,13 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     }
 
     struct Lexer lexer;
-    init(&lexer, string, initial_stack_size, is_jsonlines);
+    init_lexer(&lexer, string, is_jsonlines);
     while(lexer.lexer_status == CAN_ADVANCE) {
         advance(&lexer);
     }
 
-    PyObject* ret = Py_BuildValue("s#", lexer.output, lexer.output_position-1);
-    free((char*)lexer.output);
-    free((Type*)lexer.stack);
+    PyObject* ret = Py_BuildValue("s#", lexer.output.data, lexer.output.index-1);
+    release_lexer(&lexer);
     if(lexer.lexer_status == ERROR) {
         char error_message[30];
         strncpy(error_message, lexer.input+lexer.input_position, 30);
