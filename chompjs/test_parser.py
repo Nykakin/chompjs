@@ -1,174 +1,152 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import functools
 import unittest
+
 from chompjs import parse_js_object
 
 
+def parametrize_test(*arguments):
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(self, *args, **kwargs):
+            for (in_data, expected_data) in arguments:
+                func(self, in_data, expected_data)
+        return wrapper
+    return decorate
+
+
 class TestParser(unittest.TestCase):
-    def test_one_field_dict(self):
-        result = parse_js_object("{'hello': 'world'}")
-        self.assertEqual(result, {'hello': 'world'})
+    @parametrize_test(
+        ("{'hello': 'world'}", {'hello': 'world'}),
+        ("{'hello': 'world', 'my': 'master'}", {'hello': 'world', 'my': 'master'}),
+        (
+            "{'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'}",
+            {'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'},
+        ),
+        ("{}", {}),
+    )
+    def test_parse_object(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
 
-    def test_two_fields_dict(self):
-        result = parse_js_object("{'hello': 'world', 'my': 'master'}")
-        self.assertEqual(result, {'hello': 'world', 'my': 'master'})
+    @parametrize_test(
+        ("[]", []),
+        ("[[[]]]", [[[]]]),
+        ("[[[1]]]", [[[1]]]),
+        ("[1]", [1]),
+        ("[1, 2, 3, 4]", [1, 2, 3, 4]),
+        ("['h', 'e', 'l', 'l', 'o']",  ['h', 'e', 'l', 'l', 'o']),
+        ("[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]", [[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]),
+    )
+    def test_parse_list(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
 
-    def test_nested_dict(self):
-        result = parse_js_object(
-            "{'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'}"
-        )
-        self.assertEqual(result, {'hello': 'world', 'my': {'master': 'of Orion'}, 'test': 'xx'})
+    @parametrize_test(
+        ("{'hello': [], 'world': [0]}", {'hello': [], 'world': [0]}),
+        ("{'hello': [1, 2, 3, 4]}", {'hello': [1, 2, 3, 4]}),
+        ("[{'a':12}, {'b':33}]", [{'a': 12}, {'b': 33}]),
+        (
+            "[false, {'true': true, `pies`: \"kot\"}, false,]",
+            [False, {"true": True, 'pies': 'kot'}, False],
+        ),
+        (
+            "{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}",
+            {k: 1 for k in 'abcdefghij'},
+        ),
+        (
+            "{'a':[{'b':1},{'c':[{'d':{'f':{'g':[1,2]}}},{'e':1}]}]}",
+            {'a': [{'b': 1}, {'c': [{'d': {'f': {'g': [1, 2]}}}, {'e': 1}]}]},
+        ),
+    )
+    def test_parse_mixed(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
 
-    def test_numbers(self):
-        result = parse_js_object("{'hello': 12, 'world': 10002.21}")
-        self.assertEqual(result, {'hello': 12, 'world': 10002.21})
+    @parametrize_test(
+        ("{'hello': 12, 'world': 10002.21}", {'hello': 12, 'world': 10002.21}),
+        ("[12, -323, 0.32, -32.22, .2, - 4]", [12, -323, 0.32, -32.22, 0.2, -4]),
+        ('{"a": -12, "b": - 5}', {'a': -12, 'b': -5}),
+        ("{'a': true, 'b': false, 'c': null}", {'a': True, 'b': False, 'c': None}),
+        ("[\"\\uD834\\uDD1E\"]", [u'𝄞']),
+        ("{'a': '123\\'456\\n'}", {'a': "123'456\n"}),
+        ("['\u00E9']", ['é']),
+        ('{"cache":{"\u002Ftest\u002F": 0}}', {'cache': {'/test/': 0}}),
+        ('{"a": 12_12}', {'a': 1212}),
+        ('{"a": 3.125e7}', {'a': 3.125e7}),
+        ('''{"a": "b\\'"}''', {'a': "b'"}),
+        ('{"a": .99, "b": -.1}', {"a": 0.99, "b": -.1}),
+    )
+    def test_parse_standard_values(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
 
-    def test_empty_dict(self):
-        result = parse_js_object("{}")
-        self.assertEqual(result, {})
+    @parametrize_test(
+        ("{abc: 100, dev: 200}", {'abc': 100, 'dev': 200}),
+        ("{abcdefghijklmnopqrstuvwxyz: 12}", {"abcdefghijklmnopqrstuvwxyz": 12}),
+        (
+            "{age: function(yearBorn,thisYear) {return thisYear - yearBorn;}}",
+            {"age": "function(yearBorn,thisYear) {return thisYear - yearBorn;}"}
+        ),
+        (
+            "{\"abc\": function() {return '])))))))))))))))';}}",
+            {"abc": "function() {return '])))))))))))))))';}"},
+        ),
 
-    def test_empty_list(self):
-        result = parse_js_object("[]")
-        self.assertEqual(result, [])
+        ('{"a": undefined}', {"a": "undefined"}),
+        ('[undefined, undefined]', ["undefined", "undefined"]),
+        ("{_a: 1, $b: 2}", {"_a": 1, "$b": 2}),
+    )
+    def test_parse_strange_values(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
 
-    def test_nested_lists(self):
-        result = parse_js_object("[[[]]]")
-        self.assertEqual(result, [[[]]])
+    @parametrize_test(
+        ('{"a": {"b": [12, 13, 14]}}text text', {"a": {"b": [12, 13, 14]}}),
+        ('var test = {"a": {"b": [12, 13, 14]}}', {"a": {"b": [12, 13, 14]}}),
+        ('{"a":\r\n10}', {'a': 10}),
+        ("{'foo': 0,\r\n}", {'foo': 0}),
+    )
+    def test_strange_input(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
 
-    def test_nested_lists_with_value(self):
-        result = parse_js_object("[[[1]]]")
-        self.assertEqual(result, [[[1]]])
-
-    def test_single_list_item(self):
-        result = parse_js_object("[1]")
-        self.assertEqual(result, [1])
-
-    def test_multiple_list_items(self):
-        result = parse_js_object("[1, 2, 3, 4]")
-        self.assertEqual(result, [1, 2, 3, 4])
-
-    def test_multiple_list_items_string(self):
-        result = parse_js_object("['h', 'e', 'l', 'l', 'o']")
-        self.assertEqual(result, ['h', 'e', 'l', 'l', 'o'])
-
-    def test_dict_with_lists(self):
-        result = parse_js_object("{'hello': [], 'world': [0]}")
-        self.assertEqual(result, {'hello': [], 'world': [0]})
-
-    def test_dict_with_multiple_element_list(self):
-        result = parse_js_object("{'hello': [1, 2, 3, 4]}")
-        self.assertEqual(result, {'hello': [1, 2, 3, 4]})
-
-    def test_list_of_dicts(self):
-        result = parse_js_object("[{'a':12}, {'b':33}]")
-        self.assertEqual(result, [{'a': 12}, {'b': 33}])
-
-    def test_non_quoted_identifier(self):
-        result = parse_js_object("{abcdefghijklmnopqrstuvwxyz: 12}")
-        self.assertEqual(result, {"abcdefghijklmnopqrstuvwxyz": 12})
-
-    def test_special_fields(self):
-        result = parse_js_object("{'a': true, 'b': false, 'c': null}")
-        self.assertEqual(result, {'a': True, 'b': False, 'c': None})
-
-    def test_escaped_text(self):
-        result = parse_js_object("{'a': '123\\'456\\n'}")
-        self.assertEqual(result, {'a': "123'456\n"})
-
-    def test_multiple_identifiers(self):
-        result = parse_js_object("{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}")
-        self.assertEqual(result, {k: 1 for k in 'abcdefghij'})
-
-    def test_depth(self):
-        result = parse_js_object("[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]")
-        self.assertEqual(result, [[[[[[[[[[[[[[[1]]]]]]]]]]]]]]])
-
-    def test_unicode_values(self):
-        result = parse_js_object("['\u00E9']")
-        self.assertEqual(result, ['é'])
-
-    def test_unicode_keys(self):
-        result = parse_js_object('{"cache":{"\u002Ftest\u002F": 0}}')
-        self.assertEqual(result, {'cache': {'/test/': 0}})
-
-    def test_stack(self):
-        result = parse_js_object("{'a':[{'b':1},{'c':[{'d':{'f':{'g':[1,2]}}},{'e':1}]}]}")
-        self.assertEqual(result, {'a': [{'b': 1}, {'c': [{'d': {'f': {'g': [1, 2]}}}, {'e': 1}]}]})
-
-    def test_negative_number_literals(self):
-        result = parse_js_object('{"a": -12, "b": - 5}')
-        self.assertEqual(result, {'a': -12, 'b': -5})
-
-    def test_number_literals_with_separators(self):
-        result = parse_js_object('{"a": 12_12}')
-        self.assertEqual(result, {'a': 1212})
-
-    def test_scientific_notation_number_literal(self):
-        result = parse_js_object('{"a": 3.125e7}')
-        self.assertEqual(result, {'a': 3.125e7})
-
-    def test_after_text(self):
-        result = parse_js_object('{"a": {"b": [12, 13, 14]}}text text')
-        self.assertEqual(result, {"a": {"b": [12, 13, 14]}})
-
-    def test_before_text(self):
-        result = parse_js_object('var test = {"a": {"b": [12, 13, 14]}}')
-        self.assertEqual(result, {"a": {"b": [12, 13, 14]}})
-
-    def test_parse_jsonlines(self):
-        result = parse_js_object('["Test\\nDrive"]\n{"Test": "Drive"}', jsonlines=True)
-        self.assertEqual(result, [['Test\nDrive'], {'Test': 'Drive'}])
-
-    def test_windows_newlines(self):
-        result = parse_js_object('{"a":\r\n10}')
-        self.assertEqual(result, {'a': 10})
-
-        result = parse_js_object("{'foo': 0,\r\n}")
-        self.assertEqual(result, {'foo': 0})
-
-    def test_escaped_single_quotes(self):
-        result = parse_js_object('''{"a": "b\\'"}''')
-        self.assertEqual(result, {'a': "b'"})
-
-    def test_unusual_values(self):
-        result = parse_js_object('{"a": undefined}')
-        self.assertEqual(result, {"a": "undefined"})
-
-        result = parse_js_object('[undefined, undefined]')
-        self.assertEqual(result, ["undefined", "undefined"])
-
-    def test_special_characters(self):
-        result = parse_js_object("{_a: 1, $b: 2}")
-        self.assertEqual(result, {"_a": 1, "$b": 2})
-
-    def test_floats_without_leading_zero(self):
-        result = parse_js_object('{"a": .99, "b": -.1}')
-        self.assertEqual(result, {"a": 0.99, "b": -.1})
-
-    def test_javascript_functions(self):
-        result = parse_js_object("{age: function(yearBorn,thisYear) {return thisYear - yearBorn;}}");
-        self.assertEqual(result, {"age": "function(yearBorn,thisYear) {return thisYear - yearBorn;}"})
+    @parametrize_test(
+        ('["Test\\nDrive"]\n{"Test": "Drive"}', [['Test\nDrive'], {'Test': 'Drive'}]),
+    )
+    def test_jsonlines(self, in_data, expected_data):
+        result = parse_js_object(in_data, jsonlines=True)
+        self.assertEqual(result, expected_data)
 
 
 class TestParserExceptions(unittest.TestCase):
-    def test_invalid_input(self):
-        with self.assertRaises(ValueError):
-            parse_js_object('}{')
-
-    def test_empty_input(self):
-        with self.assertRaises(ValueError):
-            parse_js_object('')
-
-    def test_none_input(self):
-        with self.assertRaises(ValueError):
-            parse_js_object(None)
+    @parametrize_test(
+        ('}{', ValueError),
+        ('', ValueError),
+        (None, ValueError),
+    )
+    def test_exceptions(self, in_data, expected_exception):
+        with self.assertRaises(expected_exception):
+            parse_js_object(in_data)
 
 
-class TestUnicodeEscape(unittest.TestCase):
-    def test_unicode_escape(self):
-        result = parse_js_object('{\\\"a\\\": 12}', unicode_escape=True)
-        self.assertEqual(result, {'a': 12})
+class TestOptions(unittest.TestCase):
+    @parametrize_test(
+        ('{\\\"a\\\": 12}', {'a': 12}),
+    )
+    def test_unicode_escape(self, in_data, expected_data):
+        result = parse_js_object(in_data, unicode_escape=True)
+        self.assertEqual(result, expected_data)
+
+    @parametrize_test(
+        ('["\n"]', ["\n"]),
+        ("{'a': '\"\"', 'b': '\\\\', 'c': '\t\n'}", {'a': '""', 'b': '\\', 'c': '\t\n'}),
+    )
+    def test_json_non_strict(self, in_data, expected_data):
+        result = parse_js_object(in_data, json_params={'strict': False})
+        self.assertEqual(result, expected_data)        
 
 
 if __name__ == '__main__':
