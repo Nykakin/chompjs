@@ -1,3 +1,8 @@
+/*
+ * Copyright 2020-2021 Mariusz Obajtek. All rights reserved.
+ * License: https://github.com/Nykakin/chompjs/blob/master/LICENSE
+ */
+
 #include "parser.h"
 
 #include <stdio.h>
@@ -61,11 +66,9 @@ void emit_string_in_place(char *s, size_t size, struct Lexer* lexer) {
 
 void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
     lexer->input = string;
-    // for output alloc twice the size of input because characters are added
-    // when identifiers are quoted, e.g. from '{a:1}' to  '{"a":1}'
-    // so output might be larger than input, especially for malicious input
-    // such as '{a:1,b:1,c:1,d:1,e:1,f:1,g:1,h:1,i:1,j:1}' that is translated to
-    // '{"a":1,"b":1,"c":1,"d":1,"e":1,"f":1,"g":1,"h":1,"i":1}'
+    // allocate in advance more memory for output than for input because we might need
+    // to add extra characters
+    // for example `{a: undefined}` will be translated as `{"a": "undefined"}`
     lexer->output_size = 2 * strlen(string);
     init_char_buffer(&lexer->output, lexer->output_size);
     lexer->input_position = 0;

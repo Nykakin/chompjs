@@ -1,9 +1,17 @@
+/*
+ * Copyright 2020-2021 Mariusz Obajtek. All rights reserved.
+ * License: https://github.com/Nykakin/chompjs/blob/master/LICENSE
+ */
+
 #ifndef CHOMPJS_BUFFER_H
 #define CHOMPJS_BUFFER_H
 
 #include <stdbool.h>
 #include <stddef.h>
 
+/**
+    Implements a safe, dynamically growing char buffer
+*/
 struct CharBuffer {
     char* data;
     size_t size;

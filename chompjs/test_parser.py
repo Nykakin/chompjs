@@ -143,6 +143,15 @@ class TestOptions(unittest.TestCase):
     @parametrize_test(
         ('["\n"]', ["\n"]),
         ("{'a': '\"\"', 'b': '\\\\', 'c': '\t\n'}", {'a': '""', 'b': '\\', 'c': '\t\n'}),
+        (
+            """var myObj = {
+                myMethod: function(params) {
+                    // ...
+                },
+                myValue: 100
+            }""",
+            {'myMethod': 'function(params) {\n                    // ...\n                }', 'myValue': 100},
+        ),
     )
     def test_json_non_strict(self, in_data, expected_data):
         result = parse_js_object(in_data, json_params={'strict': False})

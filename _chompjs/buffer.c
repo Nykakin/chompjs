@@ -1,3 +1,8 @@
+/*
+ * Copyright 2020-2021 Mariusz Obajtek. All rights reserved.
+ * License: https://github.com/Nykakin/chompjs/blob/master/LICENSE
+ */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
