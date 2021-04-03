@@ -10,7 +10,7 @@
 
 Think of it as a more powerful `json.loads`. For example, it can handle JSON objects containing embedded methods by storing their code in a string:
 
-```
+```python
 >>> import chompjs
 >>> js = """
 ... var myObj = {
