@@ -6,7 +6,7 @@ import sys
 from _chompjs import parse
 
 
-def parse_js_object(string, unicode_escape=False, jsonlines=False, initial_stack_size=10):
+def parse_js_object(string, unicode_escape=False, jsonlines=False):
     if not string:
         raise ValueError('Invalid input')
     if unicode_escape:
@@ -19,7 +19,7 @@ def parse_js_object(string, unicode_escape=False, jsonlines=False, initial_stack
     # only to change exception message
     exception = None
     try:
-        parsed_data = parse(string, initial_stack_size, jsonlines)
+        parsed_data = parse(string, jsonlines)
     except ValueError as e:
         exception = e
     if exception:

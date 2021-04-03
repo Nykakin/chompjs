@@ -121,8 +121,14 @@ struct State json(struct Lexer* lexer) {
             pop(&lexer->depth_stack);
             emit('}', lexer);
             if(empty(&lexer->depth_stack)) {
-                struct State end_state = {end};
-                return end_state;
+                if(lexer->is_jsonlines) {
+                    emit_in_place('\0', lexer);
+                    struct State begin_state = {begin};
+                    return begin_state;
+                } else {
+                    struct State end_state = {end};
+                    return end_state;
+                }
             }
         break;
         case ']':
@@ -132,8 +138,14 @@ struct State json(struct Lexer* lexer) {
             pop(&lexer->depth_stack);
             emit(']', lexer);
             if(empty(&lexer->depth_stack)) {
-                struct State end_state = {end};
-                return end_state;
+                if(lexer->is_jsonlines) {
+                    emit_in_place('\0', lexer);
+                    struct State begin_state = {begin};
+                    return begin_state;
+                } else {
+                    struct State end_state = {end};
+                    return end_state;
+                }
             }
         break;
         case ':':

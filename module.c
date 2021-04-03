@@ -1,15 +1,15 @@
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <stdio.h>
 #include "parser.h"
 
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     const char* string;
-    size_t initial_stack_size = 10;
     int is_jsonlines = 0;
 #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTuple(args, "s|np", &string, &initial_stack_size, &is_jsonlines)) {
+    if (!PyArg_ParseTuple(args, "s|p", &string, &is_jsonlines)) {
 #else
-    if (!PyArg_ParseTuple(args, "s|ni", &string, &initial_stack_size, &is_jsonlines)) {
+    if (!PyArg_ParseTuple(args, "s|i", &string, &is_jsonlines)) {
 #endif
         return NULL;
     }

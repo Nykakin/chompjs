@@ -93,10 +93,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result, {'cache': {'/test/': 0}})
 
     def test_stack(self):
-        result = parse_js_object(
-            "{'a':[{'b':1},{'c':[{'d':{'f':{'g':[1,2]}}},{'e':1}]}]}",
-            initial_stack_size=1,
-        )
+        result = parse_js_object("{'a':[{'b':1},{'c':[{'d':{'f':{'g':[1,2]}}},{'e':1}]}]}")
         self.assertEqual(result, {'a': [{'b': 1}, {'c': [{'d': {'f': {'g': [1, 2]}}}, {'e': 1}]}]})
 
     def test_negative_number_literals(self):
@@ -148,6 +145,10 @@ class TestParser(unittest.TestCase):
     def test_floats_without_leading_zero(self):
         result = parse_js_object('{"a": .99, "b": -.1}')
         self.assertEqual(result, {"a": 0.99, "b": -.1})
+
+    def test_javascript_functions(self):
+        result = parse_js_object("{age: function(yearBorn,thisYear) {return thisYear - yearBorn;}}");
+        self.assertEqual(result, {"age": "function(yearBorn,thisYear) {return thisYear - yearBorn;}"})
 
 
 class TestParserExceptions(unittest.TestCase):
