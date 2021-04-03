@@ -19,7 +19,7 @@ if system() == 'Linux':
 
 chompjs_extension = Extension(
     '_chompjs',
-    sources=['module.c', 'parser.c', 'buffer.c'],
+    sources=['_chompjs/module.c', '_chompjs/parser.c', '_chompjs/buffer.c'],
     extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args,
 )
