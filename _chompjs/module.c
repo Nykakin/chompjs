@@ -29,7 +29,7 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     release_lexer(&lexer);
     if(lexer.lexer_status == ERROR) {
         char error_message[30];
-        strncpy(error_message, lexer.input+lexer.input_position, 30);
+        memcpy(error_message, lexer.input+lexer.input_position, 30);
 
         PyErr_SetString(PyExc_ValueError, error_message);
         return NULL;
