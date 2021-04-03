@@ -1,4 +1,11 @@
 1.1.0
+* Parser refactored and rewritten in order to simplify code and improve speed
+* Allow handling JavaScript objects (#16)
+* Allow passing down json.loads parameters
+* Allow hexadecimal values (#12)
+
+1.0.17
+* Handle memory corruption on unclosed quotations (#13)
 
 1.0.16
 * Handle floats with leading zeros (#10)
