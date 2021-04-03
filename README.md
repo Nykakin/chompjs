@@ -8,6 +8,22 @@
 {u'my_data': u'test'}
 ```
 
+Think of it as a more powerful `json.loads`. For example, it can handle JSON objects containing embedded methods by storing their code in a string:
+
+```python
+>>> import chompjs
+>>> js = """
+... var myObj = {
+...     myMethod: function(params) {
+...         // ...
+...     },
+...     myValue: 100
+... }
+... """
+>>> chompjs.parse_js_object(js, json_params={'strict': False})
+{'myMethod': 'function(params) {\n        // ...\n    }', 'myValue': 100}
+```
+
 An example usage with `scrapy`:
 
 ```python
@@ -22,7 +38,7 @@ class MySpider(scrapy.Spider):
         script_css = 'script:contains("__NEXT_DATA__")::text'
         script_pattern = r'__NEXT_DATA__ = (.*);'
         # warning: for some pages you need to pass replace_entities=True
-        # to re_first to have JSON escaped properly
+        # into re_first to have JSON escaped properly
         script_text = response.css(script_css).re_first(script_pattern)
         try:
             json_data = chompjs.parse_js_object(script_text)
@@ -54,9 +70,18 @@ By default `chompjs` tries to start with first `{` or `[` character it founds, o
 [1, 2, 3]
 ```
 
+`json_params` argument can be used to pass options to underlying `json_loads`, such as `strict` or `object_hook`:
+
+```python
+>>> import decimal
+>>> import chompjs
+>>> chompjs.parse_js_object('[23.2]', json_params={'parse_float': decimal.Decimal})
+[Decimal('23.2')]
+```
+
 # Rationale
 
-In web scraping data is often present not in HTML, but provided as an embedded JavaScript object that is later used to initialize the page, for example:
+In web scraping data often is not present directly inside HTML, but instead provided as an embedded JavaScript object that is later used to initialize the page, for example:
 
 ```html
 <html>
@@ -69,7 +94,7 @@ In web scraping data is often present not in HTML, but provided as an embedded J
 </html>
 ```
 
-Standard library module utility `json.loads` is usually sufficient to extract this data:
+Standard library function `json.loads` is usually sufficient to extract this data:
 
 ```python
 >>> # scrapy shell file:///tmp/test.html
@@ -79,7 +104,7 @@ Standard library module utility `json.loads` is usually sufficient to extract th
 {u'foo': u'bar'}
 
 ```
-The problem is that not all valid JavaScript objects are also valid JSONs. For example all those strings are valid JSON objects but not valid JSONs:
+The problem is that not all valid JavaScript objects are also valid JSONs. For example all those strings are valid JavaScript objects but not valid JSONs:
 
 * `"{'a': 'b'}"` is not a valid JSON because it use `'` character to quote
 * `'{a: "b"}'`is not a valid JSON because property name is not quoted at all
@@ -144,7 +169,7 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 {u'a': [1, 2, 3]}
 ```
 
-Internally `chompjs` use a parser written in C to iterate over raw string, fixing issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full blown JavaScript parsers such as `demjson`.
+Internally `chompjs` use a parser written in C to iterate over raw string, fixing its issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full blown JavaScript parsers such as `demjson`.
 
 ```
 >>> import json

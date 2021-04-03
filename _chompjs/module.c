@@ -1,28 +1,32 @@
+/*
+ * Copyright 2020-2021 Mariusz Obajtek. All rights reserved.
+ * License: https://github.com/Nykakin/chompjs/blob/master/LICENSE
+ */
+
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <stdio.h>
 #include "parser.h"
 
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     const char* string;
-    size_t initial_stack_size = 10;
     int is_jsonlines = 0;
 #if PY_MAJOR_VERSION >= 3
-    if (!PyArg_ParseTuple(args, "s|np", &string, &initial_stack_size, &is_jsonlines)) {
+    if (!PyArg_ParseTuple(args, "s|p", &string, &is_jsonlines)) {
 #else
-    if (!PyArg_ParseTuple(args, "s|ni", &string, &initial_stack_size, &is_jsonlines)) {
+    if (!PyArg_ParseTuple(args, "s|i", &string, &is_jsonlines)) {
 #endif
         return NULL;
     }
 
     struct Lexer lexer;
-    init(&lexer, string, initial_stack_size, is_jsonlines);
+    init_lexer(&lexer, string, is_jsonlines);
     while(lexer.lexer_status == CAN_ADVANCE) {
         advance(&lexer);
     }
 
-    PyObject* ret = Py_BuildValue("s#", lexer.output, lexer.output_position-1);
-    free((char*)lexer.output);
-    free((Type*)lexer.stack);
+    PyObject* ret = Py_BuildValue("s#", lexer.output.data, lexer.output.index-1);
+    release_lexer(&lexer);
     if(lexer.lexer_status == ERROR) {
         char error_message[30];
         strncpy(error_message, lexer.input+lexer.input_position, 30);
