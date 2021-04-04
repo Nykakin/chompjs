@@ -283,16 +283,28 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
         char c = lexer->input[lexer->input_position];
 
         switch(c) {
+            case '\\':
+                emit_in_place('\\', lexer);
+                emit('\\', lexer);
+            break;
+
             case '\'':
             case '"':
             case '`':
-                emit(c, lexer);
+                if(c == '"') {
+                    emit_in_place('\\', lexer);
+                    emit('"', lexer);
+                } else {
+                    emit(c, lexer);
+                }
+
                 if(!currently_quoted_with) {
                     currently_quoted_with = c;
                 } else if (currently_quoted_with == c) {
                     currently_quoted_with = '\0';
                 }
             break;
+
             case '{':
             case '[':
             case '<':
