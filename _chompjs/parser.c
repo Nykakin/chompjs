@@ -147,6 +147,8 @@ struct State json(struct Lexer* lexer) {
         break;
         case ',':
             emit(',', lexer);
+        break;
+
         case '/':;
             char next_c = lexer->input[lexer->input_position+1];
             if(next_c == '/' || next_c == '*') {
@@ -349,7 +351,6 @@ struct State handle_unrecognized(struct Lexer* lexer) {
 void handle_comments(struct Lexer* lexer) {
     char c, next_c;
 
-
     lexer->input_position += 1;
     if(lexer->input[lexer->input_position] == '/' ) {
         for(;;) {
@@ -364,7 +365,6 @@ void handle_comments(struct Lexer* lexer) {
             lexer->input_position+=1;
             c = lexer->input[lexer->input_position];
             next_c = lexer->input[lexer->input_position+1];
-
             if((c == '\0') || (c == '*' && next_c == '/')) {
                 break;
             }

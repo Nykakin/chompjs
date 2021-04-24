@@ -78,6 +78,7 @@ class TestParser(unittest.TestCase):
         ('{"a": 3.125e7}', {'a': 3.125e7}),
         ('''{"a": "b\\'"}''', {'a': "b'"}),
         ('{"a": .99, "b": -.1}', {"a": 0.99, "b": -.1}),
+        ('["/* ... */", "// ..."]', ["/* ... */", "// ..."]),
     )
     def test_parse_standard_values(self, in_data, expected_data):
         result = parse_js_object(in_data)
@@ -133,6 +134,10 @@ class TestParser(unittest.TestCase):
                 };
             """,
             {"x": "X"},
+        ),
+        (
+            """[/*...*/1,2,3,/*...*/4,5,6]""",
+            [1, 2, 3, 4, 5, 6],
         ),
     )
     def test_comments(self, in_data, expected_data):
