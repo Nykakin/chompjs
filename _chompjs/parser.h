@@ -98,6 +98,9 @@ void emit_string(char *s, size_t size, struct Lexer* lexer);
 /** Send string to output buffer, keep old input position */
 void emit_string_in_place(char *s, size_t size, struct Lexer* lexer);
 
+/** Handle comments in JSON body */
+void handle_comments(struct Lexer* lexer);
+
 /** Initialize main lexer object*/
 void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines);
 
