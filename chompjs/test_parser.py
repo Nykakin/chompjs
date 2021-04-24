@@ -116,6 +116,30 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result, expected_data)
 
     @parametrize_test(
+        (
+            """
+                var obj = {
+                    // Comment
+                    x: "X", // Comment
+                };
+            """,
+            {"x": "X"},
+        ),
+        (
+            """
+                var /* Comment */ obj = /* Comment */ {
+                    /* Comment */
+                    x: /* Comment */ "X", /* Comment */
+                };
+            """,
+            {"x": "X"},
+        ),
+    )
+    def test_comments(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
+
+    @parametrize_test(
         ('["Test\\nDrive"]\n{"Test": "Drive"}', [['Test\nDrive'], {'Test': 'Drive'}]),
     )
     def test_jsonlines(self, in_data, expected_data):
