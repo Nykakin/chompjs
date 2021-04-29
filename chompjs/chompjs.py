@@ -20,12 +20,9 @@ def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=N
     # I use this roundabout way to capture exception because Python 2.7 doesn't
     # support `raise ... from None` syntax and I don't want to include six.rethrow
     # only to change exception message
-    exception = None
     try:
         parsed_data = parse(string, jsonlines)
-    except ValueError as e:
-        exception = e
-    if exception:
+    except ValueError as exception:
         if sys.version_info[0] < 3:
             raise ValueError('Parser error: ... {}'.format(repr(str(exception))[1:-1]))
         else:
