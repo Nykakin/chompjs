@@ -106,7 +106,7 @@ Standard library function `json.loads` is usually sufficient to extract this dat
 ```
 The problem is that not all valid JavaScript objects are also valid JSONs. For example all those strings are valid JavaScript objects but not valid JSONs:
 
-* `"{'a': 'b'}"` is not a valid JSON because it use `'` character to quote
+* `"{'a': 'b'}"` is not a valid JSON because it uses `'` character to quote
 * `'{a: "b"}'`is not a valid JSON because property name is not quoted at all
 * `'{"a": [1, 2, 3,]}'` is not a valid JSON because there is an extra `,` character at the end of the array
 * `'{"a": .99}'` is not a valid JSON because float value lacks a leading 0
@@ -156,7 +156,7 @@ Traceback (most recent call last):
 json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 
 ```
-`chompjs` library was designed to bypass this limitation and it allows to scrape such JavaScript objects into proper Python dictionaries:
+`chompjs` library was designed to bypass this limitation, and it allows to scrape such JavaScript objects into proper Python dictionaries:
 
 ```
 >>> import chompjs
@@ -169,7 +169,7 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 {u'a': [1, 2, 3]}
 ```
 
-Internally `chompjs` use a parser written in C to iterate over raw string, fixing its issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full blown JavaScript parsers such as `demjson`.
+Internally `chompjs` use a parser written in C to iterate over raw string, fixing its issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full-blown JavaScript parsers such as `demjson`.
 
 ```
 >>> import json
