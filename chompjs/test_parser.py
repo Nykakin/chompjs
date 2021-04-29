@@ -186,7 +186,7 @@ class TestOptions(unittest.TestCase):
     )
     def test_json_non_strict(self, in_data, expected_data):
         result = parse_js_object(in_data, json_params={'strict': False})
-        self.assertEqual(result, expected_data)        
+        self.assertEqual(result, expected_data)
 
 
 if __name__ == '__main__':
