@@ -162,6 +162,13 @@ class TestParserExceptions(unittest.TestCase):
         with self.assertRaises(expected_exception):
             parse_js_object(in_data)
 
+    @parametrize_test(
+        ("{whose: 's's', category_name: '>'}", ValueError),
+    )
+    def test_malformed_input(self, in_data, expected_exception):
+        with self.assertRaises(expected_exception):
+            parse_js_object(in_data)
+
 
 class TestOptions(unittest.TestCase):
     @parametrize_test(

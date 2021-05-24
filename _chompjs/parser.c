@@ -159,6 +159,14 @@ struct State json(struct Lexer* lexer) {
             }
         break;
 
+        // This should never happen, but an malformed input can
+        // cause an infinite loop without this check
+        case '>':
+        case ')':;
+            struct State error_state = {error};
+            return error_state;
+        break;
+
         default:;
             struct State value_state = {value};
             return value_state;
