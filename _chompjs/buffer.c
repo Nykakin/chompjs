@@ -11,7 +11,7 @@
 
 void init_char_buffer(struct CharBuffer* buffer, size_t initial_depth_buffer_size) {
     buffer->data = malloc(initial_depth_buffer_size);
-    buffer->size = initial_depth_buffer_size;
+    buffer->memory_buffer_length = initial_depth_buffer_size;
     buffer->index = 0;
 }
 
@@ -22,16 +22,16 @@ void release_char_buffer(struct CharBuffer* buffer) {
 void push(struct CharBuffer* buffer, char value) {
     buffer->data[buffer->index] = value;
     buffer->index += 1;
-    if(buffer->index >= buffer->size) {
-        buffer->data = realloc(buffer->data, 2*buffer->size);
-        buffer->size *= 2;
+    if(buffer->index >= buffer->memory_buffer_length) {
+        buffer->data = realloc(buffer->data, 2*buffer->memory_buffer_length);
+        buffer->memory_buffer_length *= 2;
     }
 }
 
 void push_string(struct CharBuffer* buffer, char* value, size_t len) {
-    if(buffer->index + len >= buffer->size) {
-        buffer->data = realloc(buffer->data, 2*buffer->size);
-        buffer->size *= 2;
+    if(buffer->index + len >= buffer->memory_buffer_length) {
+        buffer->data = realloc(buffer->data, 2*buffer->memory_buffer_length);
+        buffer->memory_buffer_length *= 2;
     }
     memcpy(buffer->data + buffer->index, value, len);
     buffer->index += len;
@@ -51,4 +51,8 @@ bool empty(struct CharBuffer* buffer) {
 
 void clear(struct CharBuffer* buffer) {
     buffer->index = 0;
+}
+
+size_t size(struct CharBuffer* buffer) {
+    return buffer->index;
 }

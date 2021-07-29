@@ -7,6 +7,7 @@
 #define CHOMPJS_PARSER_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "buffer.h"
 
@@ -59,9 +60,10 @@ struct Lexer {
     size_t output_position;
     LexerStatus lexer_status;
     struct State* state;
-    size_t nesting_depth;
-    size_t helper_nesting_depth;
+    struct CharBuffer nesting_depth;
+    size_t unrecognized_nesting_depth;
     bool is_jsonlines;
+    bool is_key;
 };
 
 /** Switch state of internal state machine */

@@ -14,7 +14,7 @@
 */
 struct CharBuffer {
     char* data;
-    size_t size;
+    size_t memory_buffer_length;
     size_t index;
 };
 
@@ -33,5 +33,7 @@ char top(struct CharBuffer* buffer);
 bool empty(struct CharBuffer* buffer);
 
 void clear(struct CharBuffer* buffer);
+
+size_t size(struct CharBuffer* buffer);
 
 #endif

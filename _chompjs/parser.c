@@ -11,6 +11,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#define INITIAL_NESTING_DEPTH 20
+
 struct State states[] = {
     {begin},
     {json},
@@ -72,11 +74,12 @@ void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
     lexer->output_size = 2 * strlen(string);
     init_char_buffer(&lexer->output, lexer->output_size);
     lexer->input_position = 0;
-    lexer->nesting_depth = 0;
-    lexer->helper_nesting_depth = 0;
+    init_char_buffer(&lexer->nesting_depth, INITIAL_NESTING_DEPTH);
+    lexer->unrecognized_nesting_depth = 0;
     lexer->lexer_status = CAN_ADVANCE;
     lexer->state = &states[BEGIN_STATE];
     lexer->is_jsonlines = is_jsonlines;
+    lexer->is_key = false;
 }
 
 void release_lexer(struct Lexer* lexer) {
@@ -88,6 +91,7 @@ struct State* begin(struct Lexer* lexer) {
     for(;;) {
         switch(next_char(lexer)) {
         case '{':
+            lexer->is_key = true;
         case '[':;
             return &states[JSON_STATE];
         break;
@@ -104,20 +108,22 @@ struct State* json(struct Lexer* lexer) {
     for(;;) {
         switch(next_char(lexer)) {
         case '{':
-            lexer->nesting_depth += 1;
+            push(&lexer->nesting_depth, '{');
+            lexer->is_key = true;
             emit('{', lexer);
         break;
         case '[':
-            lexer->nesting_depth += 1;
+            push(&lexer->nesting_depth, '[');
             emit('[', lexer);
         break;
         case '}':
             if(last_char(lexer) == ',') {
                 unemit(lexer);
             }
-            lexer->nesting_depth -= 1;
+            pop(&lexer->nesting_depth);
+            lexer->is_key = top(&lexer->nesting_depth) == '{';
             emit('}', lexer);
-            if(lexer->nesting_depth <= 0) {
+            if(size(&lexer->nesting_depth) <= 0) {
                 if(lexer->is_jsonlines) {
                     emit_in_place('\0', lexer);
                     return &states[BEGIN_STATE];
@@ -130,9 +136,10 @@ struct State* json(struct Lexer* lexer) {
             if(last_char(lexer) == ',') {
                 unemit(lexer);
             }
-            lexer->nesting_depth -= 1;
+            pop(&lexer->nesting_depth);
+            lexer->is_key = top(&lexer->nesting_depth) == '{';
             emit(']', lexer);
-            if(lexer->nesting_depth <= 0) {
+            if(size(&lexer->nesting_depth) <= 0) {
                 if(lexer->is_jsonlines) {
                     emit_in_place('\0', lexer);
                     return &states[BEGIN_STATE];
@@ -142,10 +149,12 @@ struct State* json(struct Lexer* lexer) {
             }
         break;
         case ':':
+            lexer->is_key = false;
             emit(':', lexer);
         break;
         case ',':
             emit(',', lexer);
+            lexer->is_key = top(&lexer->nesting_depth) == '{';
 
         case '/':;
             char next_c = lexer->input[lexer->input_position+1];
@@ -177,7 +186,11 @@ struct State* value(struct Lexer* lexer) {
     if(c == '"' || c == '\'' || c == '`') {
         return handle_quoted(lexer);
     } else if(isdigit(c) || c == '.' || c == '-') {
-        return handle_numeric(lexer);
+        if(lexer->is_key) {
+            return handle_unrecognized(lexer);
+        } else {
+            return handle_numeric(lexer);
+        }
     } else if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
         emit_string("true", 4, lexer);
     } else if(strncmp(lexer->input + lexer->input_position, "false", 5) == 0) {
@@ -286,7 +299,7 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
     emit_in_place('"', lexer);
     char currently_quoted_with = '\0';
 
-    lexer->helper_nesting_depth = 0;
+    lexer->unrecognized_nesting_depth = 0;
     do {
         char c = lexer->input[lexer->input_position];
 
@@ -318,18 +331,18 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
             case '<':
             case '(':
                 emit(c, lexer);
-                lexer->helper_nesting_depth += 1;
+                lexer->unrecognized_nesting_depth += 1;
             break;
 
             case '}':
             case ']':
             case '>':
             case ')':
-                if(currently_quoted_with && lexer->helper_nesting_depth > 0) {
+                if(currently_quoted_with && lexer->unrecognized_nesting_depth > 0) {
                     emit(c, lexer);
-                } else if(lexer->helper_nesting_depth > 0) {
+                } else if(lexer->unrecognized_nesting_depth > 0) {
                     emit(c, lexer);
-                    lexer->helper_nesting_depth -= 1;
+                    lexer->unrecognized_nesting_depth -= 1;
                 } else {
                     emit_in_place('"', lexer);
                     return &states[JSON_STATE];
@@ -338,7 +351,7 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
 
             case ',':
             case ':':
-                if(!currently_quoted_with && lexer->helper_nesting_depth <= 0) {
+                if(!currently_quoted_with && lexer->unrecognized_nesting_depth <= 0) {
                     emit_in_place('"', lexer);
                     return &states[JSON_STATE];
                 } else {
