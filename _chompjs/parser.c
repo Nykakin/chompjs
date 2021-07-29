@@ -39,16 +39,7 @@ char next_char(struct Lexer* lexer) {
 }
 
 char last_char(struct Lexer* lexer) {
-    int index = lexer->input_position-1;
-    while(index > 0) {
-        if(isspace(lexer->input[index])) {
-            index -= 1;
-            continue;
-        } else {
-            return lexer->input[index];
-        }
-    }
-    return '\0';
+    return top(&lexer->output);
 }
 
 void emit(char c, struct Lexer* lexer) {
@@ -155,6 +146,23 @@ struct State* json(struct Lexer* lexer) {
         break;
         case ',':
             emit(',', lexer);
+
+        case '/':;
+            char next_c = lexer->input[lexer->input_position+1];
+            if(next_c == '/' || next_c == '*') {
+                handle_comments(lexer);
+            } else {
+                return &states[VALUE_STATE];
+            }
+        break;
+
+        // This should never happen, but an malformed input can
+        // cause an infinite loop without this check
+        case '>':
+        case ')':;
+            return &states[ERROR_STATE];
+        break;
+
         default:
             return &states[VALUE_STATE];
         }
@@ -344,4 +352,29 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
     } while (lexer->input[lexer->input_position] != '\0');
 
     return &states[ERROR_STATE];
+}
+
+void handle_comments(struct Lexer* lexer) {
+    char c, next_c;
+
+    lexer->input_position += 1;
+    if(lexer->input[lexer->input_position] == '/' ) {
+        for(;;) {
+            lexer->input_position+=1;
+            c = lexer->input[lexer->input_position];
+            if((c == '\0') || (c == '\n')) {
+                break;
+            }
+        }
+    } else if(lexer->input[lexer->input_position] == '*') {
+        for(;;) {
+            lexer->input_position+=1;
+            c = lexer->input[lexer->input_position];
+            next_c = lexer->input[lexer->input_position+1];
+            if((c == '\0') || (c == '*' && next_c == '/')) {
+                break;
+            }
+        }
+        lexer->input_position+=2;
+    }
 }

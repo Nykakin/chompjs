@@ -78,6 +78,7 @@ class TestParser(unittest.TestCase):
         ('{"a": 3.125e7}', {'a': 3.125e7}),
         ('''{"a": "b\\'"}''', {'a': "b'"}),
         ('{"a": .99, "b": -.1}', {"a": 0.99, "b": -.1}),
+        ('["/* ... */", "// ..."]', ["/* ... */", "// ..."]),
     )
     def test_parse_standard_values(self, in_data, expected_data):
         result = parse_js_object(in_data)
@@ -116,6 +117,34 @@ class TestParser(unittest.TestCase):
         self.assertEqual(result, expected_data)
 
     @parametrize_test(
+        (
+            """
+                var obj = {
+                    // Comment
+                    x: "X", // Comment
+                };
+            """,
+            {"x": "X"},
+        ),
+        (
+            """
+                var /* Comment */ obj = /* Comment */ {
+                    /* Comment */
+                    x: /* Comment */ "X", /* Comment */
+                };
+            """,
+            {"x": "X"},
+        ),
+        (
+            """[/*...*/1,2,3,/*...*/4,5,6]""",
+            [1, 2, 3, 4, 5, 6],
+        ),
+    )
+    def test_comments(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
+
+    @parametrize_test(
         ('["Test\\nDrive"]\n{"Test": "Drive"}', [['Test\nDrive'], {'Test': 'Drive'}]),
     )
     def test_jsonlines(self, in_data, expected_data):
@@ -130,6 +159,13 @@ class TestParserExceptions(unittest.TestCase):
         (None, ValueError),
     )
     def test_exceptions(self, in_data, expected_exception):
+        with self.assertRaises(expected_exception):
+            parse_js_object(in_data)
+
+    @parametrize_test(
+        ("{whose: 's's', category_name: '>'}", ValueError),
+    )
+    def test_malformed_input(self, in_data, expected_exception):
         with self.assertRaises(expected_exception):
             parse_js_object(in_data)
 
@@ -157,7 +193,7 @@ class TestOptions(unittest.TestCase):
     )
     def test_json_non_strict(self, in_data, expected_data):
         result = parse_js_object(in_data, json_params={'strict': False})
-        self.assertEqual(result, expected_data)        
+        self.assertEqual(result, expected_data)
 
 
 if __name__ == '__main__':
