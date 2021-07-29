@@ -28,10 +28,21 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     PyObject* ret = Py_BuildValue("s#", lexer.output.data, lexer.output.index-1);
     release_lexer(&lexer);
     if(lexer.lexer_status == ERROR) {
-        char error_message[30];
-        memcpy(error_message, lexer.input+lexer.input_position, 30);
-
-        PyErr_SetString(PyExc_ValueError, error_message);
+        const char* msg_sting = "Error parsing input near character %d";
+        size_t error_buffer_size = snprintf(
+            NULL,
+            0,
+            msg_sting,
+            lexer.input_position
+        );       
+        char* error_buffer = malloc(error_buffer_size + 1);
+        sprintf(
+            error_buffer,
+            msg_sting,
+            lexer.input_position - 1
+        );
+        PyErr_SetString(PyExc_ValueError, error_buffer);
+        free(error_buffer);
         return NULL;
     }
     return ret;
