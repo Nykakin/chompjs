@@ -91,6 +91,7 @@ struct State* begin(struct Lexer* lexer) {
     for(;;) {
         switch(next_char(lexer)) {
         case '{':
+            lexer->is_key = true;
         case '[':;
             return &states[JSON_STATE];
         break;
@@ -108,6 +109,7 @@ struct State* json(struct Lexer* lexer) {
         switch(next_char(lexer)) {
         case '{':
             push(&lexer->nesting_depth, '{');
+            lexer->is_key = true;
             emit('{', lexer);
         break;
         case '[':
@@ -119,6 +121,7 @@ struct State* json(struct Lexer* lexer) {
                 unemit(lexer);
             }
             pop(&lexer->nesting_depth);
+            lexer->is_key = top(&lexer->nesting_depth) == '{';
             emit('}', lexer);
             if(size(&lexer->nesting_depth) <= 0) {
                 if(lexer->is_jsonlines) {
@@ -134,6 +137,7 @@ struct State* json(struct Lexer* lexer) {
                 unemit(lexer);
             }
             pop(&lexer->nesting_depth);
+            lexer->is_key = top(&lexer->nesting_depth) == '{';
             emit(']', lexer);
             if(size(&lexer->nesting_depth) <= 0) {
                 if(lexer->is_jsonlines) {
@@ -145,10 +149,12 @@ struct State* json(struct Lexer* lexer) {
             }
         break;
         case ':':
+            lexer->is_key = false;
             emit(':', lexer);
         break;
         case ',':
             emit(',', lexer);
+            lexer->is_key = top(&lexer->nesting_depth) == '{';
 
         case '/':;
             char next_c = lexer->input[lexer->input_position+1];
