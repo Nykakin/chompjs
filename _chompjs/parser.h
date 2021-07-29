@@ -20,11 +20,11 @@ struct Lexer;
     * end - finish work
     * error - finish work, mark an error
 */
-struct State begin(struct Lexer* lexer);
-struct State json(struct Lexer* lexer);
-struct State value(struct Lexer* lexer);
-struct State end(struct Lexer* lexer);
-struct State error(struct Lexer* lexer);
+struct State* begin(struct Lexer* lexer);
+struct State* json(struct Lexer* lexer);
+struct State* value(struct Lexer* lexer);
+struct State* end(struct Lexer* lexer);
+struct State* error(struct Lexer* lexer);
 
 /*
     Helper functions used in "value" state
@@ -32,25 +32,15 @@ struct State error(struct Lexer* lexer);
     * handle_numeric - handle numbers
     * handle_unrecognized - save all unrecognized data as a string
 */
-struct State handle_quoted(struct Lexer* lexer);
-struct State handle_numeric(struct Lexer* lexer);
-struct State handle_unrecognized(struct Lexer* lexer);
-
-typedef enum {
-    OBJECT = 79, // ASCI 'O'
-    ARRAY = 65 // ASCII 'A'
-} Type;
+struct State* handle_quoted(struct Lexer* lexer);
+struct State* handle_numeric(struct Lexer* lexer);
+struct State* handle_unrecognized(struct Lexer* lexer);
 
 /**
     State wrapper
-
-    To change a state run:
-
-        struct State new_state = {state};
-        return new_state;
 */
 struct State {
-    struct State (*change)(struct Lexer *);
+    struct State* (*change)(struct Lexer *);
 };
 
 /** Possible results of internal state machine state change state */
@@ -68,9 +58,9 @@ struct Lexer {
     size_t input_position;
     size_t output_position;
     LexerStatus lexer_status;
-    struct State state;
-    struct CharBuffer depth_stack;
-    struct CharBuffer helper_buffer;
+    struct State* state;
+    size_t nesting_depth;
+    size_t helper_nesting_depth;
     bool is_jsonlines;
 };
 

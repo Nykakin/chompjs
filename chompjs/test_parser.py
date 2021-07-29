@@ -95,12 +95,12 @@ class TestParser(unittest.TestCase):
             "{\"abc\": function() {return '])))))))))))))))';}}",
             {"abc": "function() {return '])))))))))))))))';}"},
         ),
-
         ('{"a": undefined}', {"a": "undefined"}),
         ('[undefined, undefined]', ["undefined", "undefined"]),
         ("{_a: 1, $b: 2}", {"_a": 1, "$b": 2}),
         ("[0x12, 0xAB, 051, 0o51, 0b111]", ["0x12", "0xab", "051", "0o51", "0b111"]),
-        ("{regex: /a[^d]{1,12}/i}", {'regex': '/a[^d]{1,12}/i'})
+        ("{regex: /a[^d]{1,12}/i}", {'regex': '/a[^d]{1,12}/i'}),
+        ("{'a': function(){return '\"'}}", {'a': 'function(){return \'"\'}'}),
     )
     def test_parse_strange_values(self, in_data, expected_data):
         result = parse_js_object(in_data)

@@ -11,11 +11,20 @@
 #include <ctype.h>
 #include <string.h>
 
-const size_t INITIAL_DEPTH_BUFFER_SIZE = 10;
-const size_t INITIAL_HELPER_BUFFER_SIZE = 10;
+struct State states[] = {
+    {begin},
+    {json},
+    {value},
+    {end},
+    {error},
+};
+
+enum StateIndex {
+    BEGIN_STATE, JSON_STATE, VALUE_STATE, END_STATE, ERROR_STATE
+};
 
 void advance(struct Lexer* lexer) {
-    lexer->state = lexer->state.change(lexer);
+    lexer->state = lexer->state->change(lexer);
 }
 
 char next_char(struct Lexer* lexer) {
@@ -63,65 +72,57 @@ void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
     lexer->output_size = 2 * strlen(string);
     init_char_buffer(&lexer->output, lexer->output_size);
     lexer->input_position = 0;
-    struct State begin_state = {begin};
+    lexer->nesting_depth = 0;
+    lexer->helper_nesting_depth = 0;
     lexer->lexer_status = CAN_ADVANCE;
-    lexer->state = begin_state;
-    init_char_buffer(&lexer->depth_stack, INITIAL_DEPTH_BUFFER_SIZE);
-    init_char_buffer(&lexer->helper_buffer, INITIAL_HELPER_BUFFER_SIZE);
+    lexer->state = &states[BEGIN_STATE];
     lexer->is_jsonlines = is_jsonlines;
 }
 
 void release_lexer(struct Lexer* lexer) {
     release_char_buffer(&lexer->output);
-    release_char_buffer(&lexer->depth_stack);
-    release_char_buffer(&lexer->helper_buffer);
 }
 
-struct State begin(struct Lexer* lexer) {
+struct State* begin(struct Lexer* lexer) {
     // Ignoring characters until either '{' or '[' appears
     for(;;) {
         switch(next_char(lexer)) {
         case '{':
         case '[':;
-            struct State value_state = {json};
-            return value_state; 
+            return &states[JSON_STATE];
         break;
         case '\0':;
-            struct State end_state = {end};
-            return end_state; 
+            return &states[END_STATE];
         default:
             lexer->input_position += 1;
         }
     }
-    struct State error_state = {error};
-    return error_state;
+    return &states[ERROR_STATE];
 }
 
-struct State json(struct Lexer* lexer) {
+struct State* json(struct Lexer* lexer) {
     for(;;) {
         switch(next_char(lexer)) {
         case '{':
-            push(&lexer->depth_stack, OBJECT);
+            lexer->nesting_depth += 1;
             emit('{', lexer);
         break;
         case '[':
-            push(&lexer->depth_stack, ARRAY);
+            lexer->nesting_depth += 1;
             emit('[', lexer);
         break;
         case '}':
             if(last_char(lexer) == ',') {
                 unemit(lexer);
             }
-            pop(&lexer->depth_stack);
+            lexer->nesting_depth -= 1;
             emit('}', lexer);
-            if(empty(&lexer->depth_stack)) {
+            if(lexer->nesting_depth <= 0) {
                 if(lexer->is_jsonlines) {
                     emit_in_place('\0', lexer);
-                    struct State begin_state = {begin};
-                    return begin_state;
+                    return &states[BEGIN_STATE];
                 } else {
-                    struct State end_state = {end};
-                    return end_state;
+                    return &states[END_STATE];
                 }
             }
         break;
@@ -129,16 +130,14 @@ struct State json(struct Lexer* lexer) {
             if(last_char(lexer) == ',') {
                 unemit(lexer);
             }
-            pop(&lexer->depth_stack);
+            lexer->nesting_depth -= 1;
             emit(']', lexer);
-            if(empty(&lexer->depth_stack)) {
+            if(lexer->nesting_depth <= 0) {
                 if(lexer->is_jsonlines) {
                     emit_in_place('\0', lexer);
-                    struct State begin_state = {begin};
-                    return begin_state;
+                    return &states[BEGIN_STATE];
                 } else {
-                    struct State end_state = {end};
-                    return end_state;
+                    return &states[END_STATE];
                 }
             }
         break;
@@ -147,15 +146,13 @@ struct State json(struct Lexer* lexer) {
         break;
         case ',':
             emit(',', lexer);
-        break;
 
         case '/':;
             char next_c = lexer->input[lexer->input_position+1];
             if(next_c == '/' || next_c == '*') {
                 handle_comments(lexer);
             } else {
-                struct State value_state = {value};
-                return value_state;
+                return &states[VALUE_STATE];
             }
         break;
 
@@ -163,21 +160,18 @@ struct State json(struct Lexer* lexer) {
         // cause an infinite loop without this check
         case '>':
         case ')':;
-            struct State error_state = {error};
-            return error_state;
+            return &states[ERROR_STATE];
         break;
 
-        default:;
-            struct State value_state = {value};
-            return value_state;
+        default:
+            return &states[VALUE_STATE];
         }
     }
 
-    struct State error_state = {error};
-    return error_state; 
+    return &states[ERROR_STATE];
 }
 
-struct State value(struct Lexer* lexer) {
+struct State* value(struct Lexer* lexer) {
     char c = next_char(lexer);
 
     if(c == '"' || c == '\'' || c == '`') {
@@ -191,17 +185,15 @@ struct State value(struct Lexer* lexer) {
     } else if(strncmp(lexer->input + lexer->input_position, "null", 4) == 0) {
         emit_string("null", 4, lexer);
     } else if(c == ']' || c == '}' || c == '[' || c == '{') {
-        struct State json_state = {json};
-        return json_state; 
+        return &states[JSON_STATE];
     } else {
         return handle_unrecognized(lexer);
     }
 
-    struct State json_state = {json};
-    return json_state; 
+    return &states[JSON_STATE];
 }
 
-struct State end(struct Lexer* lexer) {
+struct State* end(struct Lexer* lexer) {
     if(!lexer->is_jsonlines) {
         emit('\0', lexer);
     }
@@ -209,13 +201,13 @@ struct State end(struct Lexer* lexer) {
     return lexer->state;
 }
 
-struct State error(struct Lexer* lexer) {
+struct State* error(struct Lexer* lexer) {
     emit('\0', lexer);
     lexer->lexer_status = ERROR;
     return lexer->state;
 }
 
-struct State handle_quoted(struct Lexer* lexer) {
+struct State* handle_quoted(struct Lexer* lexer) {
     char current_quotation = next_char(lexer);
     emit('"', lexer);
 
@@ -236,8 +228,7 @@ struct State handle_quoted(struct Lexer* lexer) {
         // if we're closing the quotations, we're done with the string
         if(c == current_quotation) {
             emit('"', lexer);
-            struct State json_state = {json};
-            return json_state;            
+            return &states[JSON_STATE];
         }
         // otherwise, emit character
         if(c == '"') {
@@ -248,11 +239,10 @@ struct State handle_quoted(struct Lexer* lexer) {
         }
     }
             
-    struct State error_state = {error};
-    return error_state; 
+    return &states[ERROR_STATE];
 }
 
-struct State handle_numeric(struct Lexer* lexer) {
+struct State* handle_numeric(struct Lexer* lexer) {
     char c = next_char(lexer);
     if(c == '-') {
         emit('-', lexer);
@@ -289,59 +279,68 @@ struct State handle_numeric(struct Lexer* lexer) {
         emit_in_place('"', lexer);
     }
 
-    struct State json_state = {json};
-    return json_state;
+    return &states[JSON_STATE];
 }
 
-struct State handle_unrecognized(struct Lexer* lexer) {
+struct State* handle_unrecognized(struct Lexer* lexer) {
     emit_in_place('"', lexer);
     char currently_quoted_with = '\0';
 
-    clear(&lexer->helper_buffer);
+    lexer->helper_nesting_depth = 0;
     do {
         char c = lexer->input[lexer->input_position];
 
         switch(c) {
+            case '\\':
+                emit_in_place('\\', lexer);
+                emit('\\', lexer);
+            break;
+
             case '\'':
             case '"':
             case '`':
-                emit(c, lexer);
+                if(c == '"') {
+                    emit_in_place('\\', lexer);
+                    emit('"', lexer);
+                } else {
+                    emit(c, lexer);
+                }
+
                 if(!currently_quoted_with) {
                     currently_quoted_with = c;
                 } else if (currently_quoted_with == c) {
                     currently_quoted_with = '\0';
                 }
             break;
+
             case '{':
             case '[':
             case '<':
             case '(':
                 emit(c, lexer);
-                push(&lexer->helper_buffer, c);
+                lexer->helper_nesting_depth += 1;
             break;
 
             case '}':
             case ']':
             case '>':
             case ')':
-                if(currently_quoted_with && !empty(&lexer->helper_buffer)) {
+                if(currently_quoted_with && lexer->helper_nesting_depth > 0) {
                     emit(c, lexer);
-                } else if(!empty(&lexer->helper_buffer)) {
+                } else if(lexer->helper_nesting_depth > 0) {
                     emit(c, lexer);
-                    pop(&lexer->helper_buffer);
+                    lexer->helper_nesting_depth -= 1;
                 } else {
                     emit_in_place('"', lexer);
-                    struct State json_state = {json};
-                    return json_state;
+                    return &states[JSON_STATE];
                 }
             break;
 
             case ',':
             case ':':
-                if(!currently_quoted_with && empty(&lexer->helper_buffer)) {
+                if(!currently_quoted_with && lexer->helper_nesting_depth <= 0) {
                     emit_in_place('"', lexer);
-                    struct State json_state = {json};
-                    return json_state;
+                    return &states[JSON_STATE];
                 } else {
                     emit(c, lexer);
                 }
@@ -352,8 +351,7 @@ struct State handle_unrecognized(struct Lexer* lexer) {
         }
     } while (lexer->input[lexer->input_position] != '\0');
 
-    struct State error_state = {error};
-    return error_state;   
+    return &states[ERROR_STATE];
 }
 
 void handle_comments(struct Lexer* lexer) {
