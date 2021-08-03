@@ -184,11 +184,19 @@ Internally `chompjs` use a parser written in C to iterate over raw string, fixin
 ```
 
 # Installation
+From PIP:
 
 ```bash
 $ python3 -m venv venv
 $ . venv/bin/activate
 # pip install chompjs
+```
+From sources:
+```bash
+$ git clone https://github.com/Nykakin/chompjs
+$ cd chompjs
+$ python setup.py build
+$ python setup.py install
 ```
 
 To run unittests
