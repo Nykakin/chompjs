@@ -238,6 +238,10 @@ struct State* handle_quoted(struct Lexer* lexer) {
             }
             continue;
         }
+        // in case of malformed quotation we can reach end of the input
+        if(c == '\0') {
+            return &states[ERROR_STATE];
+        }
         // if we're closing the quotations, we're done with the string
         if(c == current_quotation) {
             emit('"', lexer);

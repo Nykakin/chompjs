@@ -7,12 +7,12 @@ import unittest
 from chompjs import parse_js_object
 
 
-def parametrize_test(*arguments):
+def parametrize_test(*arguments_list):
     def decorate(func):
         @functools.wraps(func)
         def wrapper(self, *args, **kwargs):
-            for (in_data, expected_data) in arguments:
-                func(self, in_data, expected_data)
+            for arguments in arguments_list:
+                func(self, *arguments)
         return wrapper
     return decorate
 
@@ -168,6 +168,17 @@ class TestParserExceptions(unittest.TestCase):
     )
     def test_malformed_input(self, in_data, expected_exception):
         with self.assertRaises(expected_exception):
+            parse_js_object(in_data)
+
+    @parametrize_test(
+        (
+            '{"test": """}',
+            ValueError,
+            'Error parsing input near character 13',
+        ),
+    )
+    def test_error_messages(self, in_data, expected_exception, expected_exception_text):
+        with self.assertRaisesRegex(expected_exception, expected_exception_text):
             parse_js_object(in_data)
 
 
