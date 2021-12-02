@@ -1,3 +1,6 @@
+1.1.5
+* Correctly handle malformed quotations (#31)
+
 1.1.4
 * Performance improvement (#19)
 * Handle numeric keys (#20)
