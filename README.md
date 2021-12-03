@@ -1,12 +1,40 @@
-# Usage
+# Chompjs
 
-`chompjs` can be used in web scrapping for turning JavaScript objects embedded in pages into valid Python dictionaries.
+![license](https://img.shields.io/github/license/Nykakin/chompjs?style=flat-square)
+![pypi version](https://img.shields.io/pypi/v/chompjs.svg)
+![python version](https://img.shields.io/pypi/pyversions/chompjs.svg)
+![downloads](https://img.shields.io/pypi/dm/chompjs.svg)
+
+Transform JavaScript objects into Python dictionaries!
+
+When scraping, you sometimes need to transform Javascript objects embedded in HTML pages into valid Python dictionaries. It can be error-prone and difficult. Chompjs is here to help.
+
+## Quickstart
+
+**1. installation**
+
+```
+> pip install chompjs
+```
+
+or build from source:
+
+```bash
+$ git clone https://github.com/Nykakin/chompjs
+$ cd chompjs
+$ python setup.py build
+$ python setup.py install
+```
+
+**2. usage**
 
 ```python
 >>> import chompjs
 >>> chompjs.parse_js_object('{"my_data": "test"}')
 {u'my_data': u'test'}
 ```
+
+## Features
 
 Think of it as a more powerful `json.loads`. For example, it can handle JSON objects containing embedded methods by storing their code in a string:
 
@@ -183,21 +211,8 @@ Internally `chompjs` use a parser written in C to iterate over raw string, fixin
 {'a': 0.99}
 ```
 
-# Installation
-From PIP:
-
-```bash
-$ python3 -m venv venv
-$ . venv/bin/activate
-# pip install chompjs
-```
-From sources:
-```bash
-$ git clone https://github.com/Nykakin/chompjs
-$ cd chompjs
-$ python setup.py build
-$ python setup.py install
-```
+# Development
+Pull requests are welcome. 
 
 To run unittests
 
