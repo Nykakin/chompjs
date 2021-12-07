@@ -155,6 +155,7 @@ struct State* json(struct Lexer* lexer) {
         case ',':
             emit(',', lexer);
             lexer->is_key = top(&lexer->nesting_depth) == '{';
+        break;
 
         case '/':;
             char next_c = lexer->input[lexer->input_position+1];
