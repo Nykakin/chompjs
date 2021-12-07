@@ -79,6 +79,7 @@ class TestParser(unittest.TestCase):
         ('''{"a": "b\\'"}''', {'a': "b'"}),
         ('{"a": .99, "b": -.1}', {"a": 0.99, "b": -.1}),
         ('["/* ... */", "// ..."]', ["/* ... */", "// ..."]),
+        ('{"inclusions":["/*","/"]}', {'inclusions': ['/*', '/']}),
     )
     def test_parse_standard_values(self, in_data, expected_data):
         result = parse_js_object(in_data)
