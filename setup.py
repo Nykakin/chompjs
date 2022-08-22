@@ -27,7 +27,7 @@ chompjs_extension = Extension(
 
 setup(
     name='chompjs',
-    version='1.1.7',
+    version='1.1.8',
     description='Parsing JavaScript objects into Python dictionaries',
     author='Mariusz Obajtek',
     author_email='nykakin@gmail.com',
