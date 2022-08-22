@@ -113,6 +113,7 @@ class TestParser(unittest.TestCase):
         ('var test = {"a": {"b": [12, 13, 14]}}', {"a": {"b": [12, 13, 14]}}),
         ('{"a":\r\n10}', {'a': 10}),
         ("{'foo': 0,\r\n}", {'foo': 0}),
+        ("{truefalse: 0, falsefalse: 1, nullnull: 2}", {'truefalse': 0, 'falsefalse': 1, 'nullnull': 2}),
     )
     def test_strange_input(self, in_data, expected_data):
         result = parse_js_object(in_data)
