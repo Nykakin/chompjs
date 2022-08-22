@@ -1,3 +1,6 @@
+1.1.7
+* Handle unquoted properties starting with reserved JS keywords (#34)
+
 1.1.6
 * Handle bug with parsing arrays like `["","/"]` (#33)
 
