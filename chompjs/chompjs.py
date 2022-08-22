@@ -18,7 +18,7 @@ def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=N
         json_params = {}
 
     parsed_data = parse(string, jsonlines)
-        
+
     if jsonlines:
         return [json.loads(j, **json_params) for j in parsed_data.split('\0')]
     else:

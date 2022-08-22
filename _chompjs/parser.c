@@ -193,10 +193,22 @@ struct State* value(struct Lexer* lexer) {
             return handle_numeric(lexer);
         }
     } else if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
+        char next_char = lexer->input[lexer->input_position+5];
+        if(next_char == '_' || isalnum(next_char)) {
+            return handle_unrecognized(lexer);
+        }
         emit_string("true", 4, lexer);
     } else if(strncmp(lexer->input + lexer->input_position, "false", 5) == 0) {
+        char next_char = lexer->input[lexer->input_position+6];
+        if(next_char == '_' || isalnum(next_char)) {
+            return handle_unrecognized(lexer);
+        }
         emit_string("false", 5, lexer);
     } else if(strncmp(lexer->input + lexer->input_position, "null", 4) == 0) {
+        char next_char = lexer->input[lexer->input_position+5];
+        if(next_char == '_' || isalnum(next_char)) {
+            return handle_unrecognized(lexer);
+        }
         emit_string("null", 4, lexer);
     } else if(c == ']' || c == '}' || c == '[' || c == '{') {
         return &states[JSON_STATE];
