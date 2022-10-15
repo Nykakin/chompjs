@@ -85,10 +85,10 @@ void emit_in_place(char c, struct Lexer* lexer);
 void unemit(struct Lexer* lexer);
 
 /** Send string to output buffer, advance input position */
-void emit_string(char *s, size_t size, struct Lexer* lexer);
+void emit_string(const char *s, size_t size, struct Lexer* lexer);
 
 /** Send string to output buffer, keep old input position */
-void emit_string_in_place(char *s, size_t size, struct Lexer* lexer);
+void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer);
 
 /** Handle comments in JSON body */
 void handle_comments(struct Lexer* lexer);

@@ -28,7 +28,7 @@ void push(struct CharBuffer* buffer, char value) {
     }
 }
 
-void push_string(struct CharBuffer* buffer, char* value, size_t len) {
+void push_string(struct CharBuffer* buffer, const char* value, size_t len) {
     if(buffer->index + len >= buffer->memory_buffer_length) {
         buffer->data = realloc(buffer->data, 2*buffer->memory_buffer_length);
         buffer->memory_buffer_length *= 2;

@@ -57,12 +57,12 @@ void unemit(struct Lexer* lexer) {
     pop(&lexer->output);
 }
 
-void emit_string(char *s, size_t size, struct Lexer* lexer) {
+void emit_string(const char *s, size_t size, struct Lexer* lexer) {
     push_string(&lexer->output, s, size);
     lexer->input_position += size;   
 }
 
-void emit_string_in_place(char *s, size_t size, struct Lexer* lexer) {
+void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer) {
     push_string(&lexer->output, s, size);
 }
 
@@ -181,6 +181,15 @@ struct State* json(struct Lexer* lexer) {
     return &states[ERROR_STATE];
 }
 
+struct State* _handle_string(struct Lexer* lexer, const char* string, size_t length) {
+    char next_char = lexer->input[lexer->input_position+length+1];
+    if(next_char == '_' || isalnum(next_char)) {
+        return handle_unrecognized(lexer);
+    }
+    emit_string(string, length, lexer);
+    return &states[JSON_STATE];
+}
+
 struct State* value(struct Lexer* lexer) {
     char c = next_char(lexer);
 
@@ -193,25 +202,15 @@ struct State* value(struct Lexer* lexer) {
             return handle_numeric(lexer);
         }
     } else if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
-        char next_char = lexer->input[lexer->input_position+5];
-        if(next_char == '_' || isalnum(next_char)) {
-            return handle_unrecognized(lexer);
-        }
-        emit_string("true", 4, lexer);
+        return _handle_string(lexer, "true", 4);
     } else if(strncmp(lexer->input + lexer->input_position, "false", 5) == 0) {
-        char next_char = lexer->input[lexer->input_position+6];
-        if(next_char == '_' || isalnum(next_char)) {
-            return handle_unrecognized(lexer);
-        }
-        emit_string("false", 5, lexer);
+        return _handle_string(lexer, "false", 5);
     } else if(strncmp(lexer->input + lexer->input_position, "null", 4) == 0) {
-        char next_char = lexer->input[lexer->input_position+5];
-        if(next_char == '_' || isalnum(next_char)) {
-            return handle_unrecognized(lexer);
-        }
-        emit_string("null", 4, lexer);
+        return _handle_string(lexer, "null", 4);
     } else if(c == ']' || c == '}' || c == '[' || c == '{') {
         return &states[JSON_STATE];
+    } else if(strncmp(lexer->input + lexer->input_position, "NaN", 3) == 0) {
+        return _handle_string(lexer, "NaN", 3);
     } else {
         return handle_unrecognized(lexer);
     }
