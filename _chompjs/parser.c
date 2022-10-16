@@ -192,6 +192,7 @@ struct State* _handle_string(struct Lexer* lexer, const char* string, size_t len
 
 struct State* value(struct Lexer* lexer) {
     char c = next_char(lexer);
+    const char* position = lexer->input + lexer->input_position;
 
     if(c == '"' || c == '\'' || c == '`') {
         return handle_quoted(lexer);
@@ -201,15 +202,15 @@ struct State* value(struct Lexer* lexer) {
         } else {
             return handle_numeric(lexer);
         }
-    } else if(strncmp(lexer->input + lexer->input_position, "true", 4) == 0) {
+    } else if(strncmp(position, "true", 4) == 0) {
         return _handle_string(lexer, "true", 4);
-    } else if(strncmp(lexer->input + lexer->input_position, "false", 5) == 0) {
+    } else if(strncmp(position, "false", 5) == 0) {
         return _handle_string(lexer, "false", 5);
-    } else if(strncmp(lexer->input + lexer->input_position, "null", 4) == 0) {
+    } else if(strncmp(position, "null", 4) == 0) {
         return _handle_string(lexer, "null", 4);
     } else if(c == ']' || c == '}' || c == '[' || c == '{') {
         return &states[JSON_STATE];
-    } else if(strncmp(lexer->input + lexer->input_position, "NaN", 3) == 0) {
+    } else if(strncmp(position, "NaN", 3) == 0) {
         return _handle_string(lexer, "NaN", 3);
     } else {
         return handle_unrecognized(lexer);
