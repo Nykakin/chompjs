@@ -1,3 +1,9 @@
+1.1.9
+* Handle NaN in input (#37)
+
+1.1.8
+* Fixed previous release (package couldn't be installed)
+
 1.1.7
 * Handle unquoted properties starting with reserved JS keywords (#34)
 

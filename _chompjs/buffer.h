@@ -24,7 +24,7 @@ void release_char_buffer(struct CharBuffer* buffer);
 
 void push(struct CharBuffer* buffer, char value);
 
-void push_string(struct CharBuffer* buffer, char* value, size_t len);
+void push_string(struct CharBuffer* buffer, const char* value, size_t len);
 
 void pop(struct CharBuffer* buffer);
 
