@@ -305,6 +305,10 @@ struct State* handle_numeric(struct Lexer* lexer) {
     // [97, 102] is ASCII range for a-f, for hex digits
     } while(isdigit(c) || c == '.' || c == '_' || (c >= 97 && c <= 102));
 
+    if(lexer->input[lexer->input_position-1] == '.') {
+        emit_in_place('0', lexer);
+    }
+
     if(to_be_quoted) {
         emit_in_place('"', lexer);
     }
