@@ -315,50 +315,6 @@ struct State* handle_numeric(struct Lexer* lexer) {
         return &states[ERROR_STATE];
     }
     return &states[JSON_STATE];
-
-
-/*
-    char c = next_char(lexer);
-    if(c == '-') {
-        emit('-', lexer);
-        c = next_char(lexer);
-    }
-    if(c == '.') {
-        emit_in_place('0', lexer);
-    }
-
-    bool to_be_quoted = false;
-    c = next_char(lexer);
-    if(c == '0') {
-        char next_c = tolower(lexer->input[lexer->input_position+1]);
-        if(next_c == 'x' || next_c == 'b' || next_c == 'o' || isdigit(next_c)) {
-            to_be_quoted = true;
-            emit_in_place('"', lexer);
-            emit('0', lexer);
-            emit(next_c, lexer);
-            c = tolower(lexer->input[lexer->input_position]);
-        }
-    }
-
-    do {
-        if(c != '_') {
-            emit(c, lexer);
-        } else {
-            lexer->input_position += 1;
-        }
-        c = tolower(lexer->input[lexer->input_position]);
-    // [97, 102] is ASCII range for a-f, for hex digits
-    } while(isdigit(c) || c == '.' || c == '_' || (c >= 97 && c <= 102));
-
-    if(lexer->input[lexer->input_position-1] == '.') {
-        emit_in_place('0', lexer);
-    }
-
-    if(to_be_quoted) {
-        emit_in_place('"', lexer);
-    }
-*/
-
 }
 
 struct State* handle_unrecognized(struct Lexer* lexer) {
