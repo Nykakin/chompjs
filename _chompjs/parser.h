@@ -90,6 +90,9 @@ void emit_string(const char *s, size_t size, struct Lexer* lexer);
 /** Send string to output buffer, keep old input position */
 void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer);
 
+/** Send number to output buffer, keep old input position */
+void emit_number_in_place(long value, struct Lexer* lexer);
+
 /** Handle comments in JSON body */
 void handle_comments(struct Lexer* lexer);
 

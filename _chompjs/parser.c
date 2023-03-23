@@ -66,6 +66,10 @@ void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer) {
     push_string(&lexer->output, s, size);
 }
 
+void emit_number_in_place(long value, struct Lexer* lexer) {
+    push_number(&lexer->output, value);
+}
+
 void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
     lexer->input = string;
     // allocate in advance more memory for output than for input because we might need
@@ -300,7 +304,10 @@ struct State* handle_numeric(struct Lexer* lexer) {
             emit('.', lexer);
             return handle_numeric(lexer);
         } else if(nc == 'x' || nc == 'X') {
-            return &states[ERROR_STATE];
+            char* end;
+            long n = strtol(lexer->input + lexer->input_position, &end, 16);
+            emit_number_in_place(n, lexer);
+            lexer->input_position = end - lexer->input;
         } else if(nc == 'o' || nc == 'O') {
             return &states[ERROR_STATE];
         } else if(isdigit(nc)) {
