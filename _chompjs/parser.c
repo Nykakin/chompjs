@@ -304,16 +304,15 @@ struct State* handle_numeric(struct Lexer* lexer) {
             emit('.', lexer);
             return handle_numeric(lexer);
         } else if(nc == 'x' || nc == 'X') {
-            char* end;
-            long n = strtol(lexer->input + lexer->input_position, &end, 16);
-            emit_number_in_place(n, lexer);
-            lexer->input_position = end - lexer->input;
+            return handle_numeric_non_standard_base(lexer, 16);
         } else if(nc == 'o' || nc == 'O') {
-            return &states[ERROR_STATE];
+            lexer->input_position += 2;
+            return handle_numeric_non_standard_base(lexer, 8);
         } else if(isdigit(nc)) {
-            return &states[ERROR_STATE];
+            return handle_numeric_non_standard_base(lexer, 8);
         } else if(nc == 'b' || nc == 'B') {
-            return &states[ERROR_STATE];
+            lexer->input_position += 2;
+            return handle_numeric_non_standard_base(lexer, 2);
         } else {
             emit('0', lexer);
             return &states[JSON_STATE];
@@ -321,6 +320,14 @@ struct State* handle_numeric(struct Lexer* lexer) {
     } else {
         return &states[ERROR_STATE];
     }
+    return &states[JSON_STATE];
+}
+
+struct State* handle_numeric_non_standard_base(struct Lexer* lexer, int base) {
+    char* end;
+    long n = strtol(lexer->input + lexer->input_position, &end, base);
+    emit_number_in_place(n, lexer);
+    lexer->input_position = end - lexer->input;
     return &states[JSON_STATE];
 }
 
