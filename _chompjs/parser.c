@@ -274,6 +274,51 @@ struct State* handle_quoted(struct Lexer* lexer) {
 
 struct State* handle_numeric(struct Lexer* lexer) {
     char c = next_char(lexer);
+    if(c >= 49 && c <= 57) { // 1-9 range
+        do {
+            if(c != '_') {
+                emit(c, lexer);
+            } else {
+                lexer->input_position += 1;
+            }
+            c = tolower(lexer->input[lexer->input_position]);
+        } while(isdigit(c) || c == '.' || c == 'e' || c == 'E' || c == '+' || c =='-' || c == '_');
+        if(last_char(lexer) == '.') {
+            emit_in_place('0', lexer);
+        }
+    } else if(c == '.') {
+        emit_in_place('0', lexer);
+        emit('.', lexer);
+        return handle_numeric(lexer);
+    } else if(c == '-') {
+        emit('-', lexer);
+        return handle_numeric(lexer);
+    } else if(c == '0') {
+        char nc = tolower(lexer->input[lexer->input_position+1]);
+        if(nc == '.') {
+            emit('0', lexer);
+            emit('.', lexer);
+            return handle_numeric(lexer);
+        } else if(nc == 'x' || nc == 'X') {
+            return &states[ERROR_STATE];
+        } else if(nc == 'o' || nc == 'O') {
+            return &states[ERROR_STATE];
+        } else if(isdigit(nc)) {
+            return &states[ERROR_STATE];
+        } else if(nc == 'b' || nc == 'B') {
+            return &states[ERROR_STATE];
+        } else {
+            emit('0', lexer);
+            return &states[JSON_STATE];
+        }
+    } else {
+        return &states[ERROR_STATE];
+    }
+    return &states[JSON_STATE];
+
+
+/*
+    char c = next_char(lexer);
     if(c == '-') {
         emit('-', lexer);
         c = next_char(lexer);
@@ -312,8 +357,8 @@ struct State* handle_numeric(struct Lexer* lexer) {
     if(to_be_quoted) {
         emit_in_place('"', lexer);
     }
+*/
 
-    return &states[JSON_STATE];
 }
 
 struct State* handle_unrecognized(struct Lexer* lexer) {
