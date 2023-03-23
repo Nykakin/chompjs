@@ -105,7 +105,6 @@ class TestParser(unittest.TestCase):
         ('{"a": undefined}', {"a": "undefined"}),
         ('[undefined, undefined]', ["undefined", "undefined"]),
         ("{_a: 1, $b: 2}", {"_a": 1, "$b": 2}),
-        ("[0x12, 0xAB, 051, 0o51, 0b111]", ["0x12", "0xab", "051", "0o51", "0b111"]),
         ("{regex: /a[^d]{1,12}/i}", {'regex': '/a[^d]{1,12}/i'}),
         ("{'a': function(){return '\"'}}", {'a': 'function(){return \'"\'}'}),
         ("{1: 1, 2: 2, 3: 3, 4: 4}", {'1': 1, '2': 2, '3': 3, '4': 4}),
@@ -125,6 +124,37 @@ class TestParser(unittest.TestCase):
     def test_strange_input(self, in_data, expected_data):
         result = parse_js_object(in_data)
         self.assertEqual(result, expected_data)
+
+    @parametrize_test(
+        ("[0x12]", [18]),
+        ("[0xab]", [171]),
+        ("[0xAB]", [171]),
+        ("[0X12]", [18]),
+        ("[0Xab]", [171]),
+        ("[0XAB]", [171]),
+        ("[01234]", [668]),
+        ("[0o1234]", [668]),
+        ("[0O1234]", [668]),
+        ("[0b1111]", [15]),
+        ("[0B1111]", [15]),
+    )
+    def test_integer_numeric_values(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
+
+    @parametrize_test(
+        ("[12.32]", 12.23),
+        ("[-12.12]", -12.12),
+        ("[3.1415926]", 3.1415926),
+        ("[.123456789]", .123456789),
+        ("[3.1E+12]", 3.1E+12),
+        ("[.1e-23]", .1e-23),
+    )
+    def test_float_numeric_values(self, in_data, expected_value):
+        result = parse_js_object(in_data)
+        epsilon = 0.00001
+        assert result[0] - expected_value < epsilon
+
 
     @parametrize_test(
         (
