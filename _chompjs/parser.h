@@ -31,10 +31,12 @@ struct State* error(struct Lexer* lexer);
     Helper functions used in "value" state
     * handle_quoted - handles quoted strings
     * handle_numeric - handle numbers
+    * handle_numeric_non_standard_base - handle numbers in non-standard bases (hex, oct)
     * handle_unrecognized - save all unrecognized data as a string
 */
 struct State* handle_quoted(struct Lexer* lexer);
 struct State* handle_numeric(struct Lexer* lexer);
+struct State* handle_numeric_non_standard_base(struct Lexer* lexer, int base);
 struct State* handle_unrecognized(struct Lexer* lexer);
 
 /**
@@ -89,6 +91,9 @@ void emit_string(const char *s, size_t size, struct Lexer* lexer);
 
 /** Send string to output buffer, keep old input position */
 void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer);
+
+/** Send number to output buffer, keep old input position */
+void emit_number_in_place(long value, struct Lexer* lexer);
 
 /** Handle comments in JSON body */
 void handle_comments(struct Lexer* lexer);

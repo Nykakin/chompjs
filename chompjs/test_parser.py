@@ -75,7 +75,6 @@ class TestParser(unittest.TestCase):
         ("{'a': '123\\'456\\n'}", {'a': "123'456\n"}),
         ("['\u00E9']", ['é']),
         ('{"cache":{"\u002Ftest\u002F": 0}}', {'cache': {'/test/': 0}}),
-        ('{"a": 12_12}', {'a': 1212}),
         ('{"a": 3.125e7}', {'a': 3.125e7}),
         ('''{"a": "b\\'"}''', {'a': "b'"}),
         ('{"a": .99, "b": -.1}', {"a": 0.99, "b": -.1}),
@@ -105,7 +104,6 @@ class TestParser(unittest.TestCase):
         ('{"a": undefined}', {"a": "undefined"}),
         ('[undefined, undefined]', ["undefined", "undefined"]),
         ("{_a: 1, $b: 2}", {"_a": 1, "$b": 2}),
-        ("[0x12, 0xAB, 051, 0o51, 0b111]", ["0x12", "0xab", "051", "0o51", "0b111"]),
         ("{regex: /a[^d]{1,12}/i}", {'regex': '/a[^d]{1,12}/i'}),
         ("{'a': function(){return '\"'}}", {'a': 'function(){return \'"\'}'}),
         ("{1: 1, 2: 2, 3: 3, 4: 4}", {'1': 1, '2': 2, '3': 3, '4': 4}),
@@ -125,6 +123,63 @@ class TestParser(unittest.TestCase):
     def test_strange_input(self, in_data, expected_data):
         result = parse_js_object(in_data)
         self.assertEqual(result, expected_data)
+
+    @parametrize_test(
+        ("[0]", [0]),
+        ("[1]", [1]),
+        ("[12]", [12]),
+        ("[12_12]", [1212]),
+        ("[0x12]", [18]),
+        ("[0xab]", [171]),
+        ("[0xAB]", [171]),
+        ("[0X12]", [18]),
+        ("[0Xab]", [171]),
+        ("[0XAB]", [171]),
+        ("[01234]", [668]),
+        ("[0o1234]", [668]),
+        ("[0O1234]", [668]),
+        ("[0b1111]", [15]),
+        ("[0B1111]", [15]),
+        ("[-0]", [-0]),
+        ("[-1]", [-1]),
+        ("[-12]", [-12]),
+        ("[-12_12]", [-1212]),
+        ("[-0x12]", [-18]),
+        ("[-0xab]", [-171]),
+        ("[-0xAB]", [-171]),
+        ("[-0X12]", [-18]),
+        ("[-0Xab]", [-171]),
+        ("[-0XAB]", [-171]),
+        ("[-01234]", [-668]),
+        ("[-0o1234]", [-668]),
+        ("[-0O1234]", [-668]),
+        ("[-0b1111]", [-15]),
+        ("[-0B1111]", [-15]),
+    )
+    def test_integer_numeric_values(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
+
+    @parametrize_test(
+        ("[0.32]", [0.32]),
+        ("[-0.32]", [-0.32]),
+        ("[.32]", [0.32]),
+        ("[-.32]", [-0.32]),
+        ("[12.]", [12.0]),
+        ("[-12.]", [-12.0]),
+        ("[12.32]", [12.32]),
+        ("[-12.12]", [-12.12]),
+        ("[3.1415926]", [3.1415926]),
+        ("[.123456789]", [.123456789]),
+        ("[3.1E+12]", [3.1E+12]),
+        ("[3.1e+12]", [3.1E+12]),
+        ("[.1e-23]", [.1e-23]),
+        ("[.1e-23]", [.1e-23]),
+    )
+    def test_float_numeric_values(self, in_data, expected_data):
+        result = parse_js_object(in_data)
+        self.assertEqual(result, expected_data)
+
 
     @parametrize_test(
         (

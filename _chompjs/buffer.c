@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "buffer.h"
 
@@ -19,22 +20,29 @@ void release_char_buffer(struct CharBuffer* buffer) {
     free(buffer->data);
 }
 
-void push(struct CharBuffer* buffer, char value) {
-    buffer->data[buffer->index] = value;
-    buffer->index += 1;
-    if(buffer->index >= buffer->memory_buffer_length) {
+void check_capacity(struct CharBuffer* buffer, size_t to_save) {
+    if(buffer->index + to_save >= buffer->memory_buffer_length) {
         buffer->data = realloc(buffer->data, 2*buffer->memory_buffer_length);
         buffer->memory_buffer_length *= 2;
     }
 }
 
+void push(struct CharBuffer* buffer, char value) {
+    check_capacity(buffer, 1);
+    buffer->data[buffer->index] = value;
+    buffer->index += 1;
+}
+
 void push_string(struct CharBuffer* buffer, const char* value, size_t len) {
-    if(buffer->index + len >= buffer->memory_buffer_length) {
-        buffer->data = realloc(buffer->data, 2*buffer->memory_buffer_length);
-        buffer->memory_buffer_length *= 2;
-    }
+    check_capacity(buffer, len);
     memcpy(buffer->data + buffer->index, value, len);
     buffer->index += len;
+}
+
+void push_number(struct CharBuffer* buffer, long value) {
+    int size_in_chars = (int)((ceil(log10(value))));
+    check_capacity(buffer, size_in_chars);
+    buffer->index += sprintf(buffer->data + buffer->index, "%ld", value);
 }
 
 void pop(struct CharBuffer* buffer) {

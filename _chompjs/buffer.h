@@ -22,9 +22,13 @@ void init_char_buffer(struct CharBuffer* buffer, size_t initial_depth_buffer_siz
 
 void release_char_buffer(struct CharBuffer* buffer);
 
+void check_capacity(struct CharBuffer* buffer, size_t to_save);
+
 void push(struct CharBuffer* buffer, char value);
 
 void push_string(struct CharBuffer* buffer, const char* value, size_t len);
+
+void push_number(struct CharBuffer* buffer, long value);
 
 void pop(struct CharBuffer* buffer);
 

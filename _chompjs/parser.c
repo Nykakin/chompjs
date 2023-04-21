@@ -66,6 +66,10 @@ void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer) {
     push_string(&lexer->output, s, size);
 }
 
+void emit_number_in_place(long value, struct Lexer* lexer) {
+    push_number(&lexer->output, value);
+}
+
 void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
     lexer->input = string;
     // allocate in advance more memory for output than for input because we might need
@@ -274,45 +278,56 @@ struct State* handle_quoted(struct Lexer* lexer) {
 
 struct State* handle_numeric(struct Lexer* lexer) {
     char c = next_char(lexer);
-    if(c == '-') {
-        emit('-', lexer);
-        c = next_char(lexer);
-    }
-    if(c == '.') {
-        emit_in_place('0', lexer);
-    }
-
-    bool to_be_quoted = false;
-    c = next_char(lexer);
-    if(c == '0') {
-        char next_c = tolower(lexer->input[lexer->input_position+1]);
-        if(next_c == 'x' || next_c == 'b' || next_c == 'o' || isdigit(next_c)) {
-            to_be_quoted = true;
-            emit_in_place('"', lexer);
-            emit('0', lexer);
-            emit(next_c, lexer);
+    if(c >= 49 && c <= 57) { // 1-9 range
+        do {
+            if(c != '_') {
+                emit(c, lexer);
+            } else {
+                lexer->input_position += 1;
+            }
             c = tolower(lexer->input[lexer->input_position]);
+        } while(isdigit(c) || c == '.' || c == 'e' || c == 'E' || c == '+' || c =='-' || c == '_');
+        if(last_char(lexer) == '.') {
+            emit_in_place('0', lexer);
         }
-    }
-
-    do {
-        if(c != '_') {
-            emit(c, lexer);
-        } else {
-            lexer->input_position += 1;
-        }
-        c = tolower(lexer->input[lexer->input_position]);
-    // [97, 102] is ASCII range for a-f, for hex digits
-    } while(isdigit(c) || c == '.' || c == '_' || (c >= 97 && c <= 102));
-
-    if(lexer->input[lexer->input_position-1] == '.') {
+    } else if(c == '.') {
         emit_in_place('0', lexer);
+        emit('.', lexer);
+        return handle_numeric(lexer);
+    } else if(c == '-') {
+        emit('-', lexer);
+        return handle_numeric(lexer);
+    } else if(c == '0') {
+        char nc = tolower(lexer->input[lexer->input_position+1]);
+        if(nc == '.') {
+            emit('0', lexer);
+            emit('.', lexer);
+            return handle_numeric(lexer);
+        } else if(nc == 'x' || nc == 'X') {
+            return handle_numeric_non_standard_base(lexer, 16);
+        } else if(nc == 'o' || nc == 'O') {
+            lexer->input_position += 2;
+            return handle_numeric_non_standard_base(lexer, 8);
+        } else if(isdigit(nc)) {
+            return handle_numeric_non_standard_base(lexer, 8);
+        } else if(nc == 'b' || nc == 'B') {
+            lexer->input_position += 2;
+            return handle_numeric_non_standard_base(lexer, 2);
+        } else {
+            emit('0', lexer);
+            return &states[JSON_STATE];
+        }
+    } else {
+        return &states[ERROR_STATE];
     }
+    return &states[JSON_STATE];
+}
 
-    if(to_be_quoted) {
-        emit_in_place('"', lexer);
-    }
-
+struct State* handle_numeric_non_standard_base(struct Lexer* lexer, int base) {
+    char* end;
+    long n = strtol(lexer->input + lexer->input_position, &end, base);
+    emit_number_in_place(n, lexer);
+    lexer->input_position = end - lexer->input;
     return &states[JSON_STATE];
 }
 
