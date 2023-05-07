@@ -46,24 +46,53 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
 
 typedef struct {
     PyObject_HEAD
+    struct Lexer lexer;
 } JsonIterState;
 
-static PyObject *json_iter_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+static PyObject* json_iter_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
     JsonIterState* json_iter_state = (JsonIterState *)type->tp_alloc(type, 0);
     if (!json_iter_state) {
         return NULL;
     }
-    return (PyObject *)json_iter_state;
+
+    const char* string;
+    if (!PyArg_ParseTuple(args, "s", &string)) {
+        return NULL;
+    }
+
+    init_lexer(&json_iter_state->lexer, string, false);
+
+    return (PyObject* )json_iter_state;
 }
 
 static void json_iter_dealloc(JsonIterState* json_iter_state) {
+    release_lexer(&json_iter_state->lexer);
     Py_TYPE(json_iter_state)->tp_free(json_iter_state);
 }
 
 static PyObject* json_iter_next(JsonIterState* json_iter_state) {
-    const char* tmp = "Test";
-    PyObject* ret = Py_BuildValue("s#", tmp, 4);
+    while(json_iter_state->lexer.lexer_status == CAN_ADVANCE) {
+        advance(&json_iter_state->lexer);
+    }
+    PyObject* ret = Py_BuildValue(
+        "s#",
+        json_iter_state->lexer.output.data,
+        json_iter_state->lexer.output.index-1
+    );
+    reset_lexer_output(&json_iter_state->lexer);
     return ret;
+
+/*
+    // close iteration
+    if(json_iter_state->lexer.lexer_status == FINISHED) {
+        return NULL;
+    }
+
+    // handle error
+    if(json_iter_state->lexer.lexer_status == ERROR) {
+        // ...
+    }
+*/
 }
 
 PyTypeObject JSONIter_Type = {
@@ -108,7 +137,7 @@ PyTypeObject JSONIter_Type = {
 };
 
 static PyObject* parse_python_objects(PyObject *self, PyObject *args) {
-    PyObject *obj = PyObject_CallObject((PyObject *) &JSONIter_Type, 0);
+    PyObject *obj = PyObject_CallObject((PyObject *) &JSONIter_Type, args);
     return obj;
 }
 

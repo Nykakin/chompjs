@@ -98,8 +98,11 @@ void emit_number_in_place(long value, struct Lexer* lexer);
 /** Handle comments in JSON body */
 void handle_comments(struct Lexer* lexer);
 
-/** Initialize main lexer object*/
+/** Initialize main lexer object */
 void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines);
+
+/** Reset main lexer object output buffer */
+void reset_lexer_output(struct Lexer* lexer);
 
 /** Release main lexer object and its memory */
 void release_lexer(struct Lexer* lexer);
