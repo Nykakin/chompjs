@@ -291,6 +291,12 @@ class TestParseJsonObjects(unittest.TestCase):
         ("{{}}{{}}", []),
         ("[[]][[]]", [[[]], [[]]]),
         ("{am: 'ab'}\n{'ab': 'xx'}", [{'am': 'ab'}, {'ab': 'xx'}]),
+        (
+            'function(a, b, c){ /* ... */ }({"a": 12}, Null, [1, 2, 3])',
+            [{}, {'a': 12}, [1, 2, 3]],
+        ),
+        ('{"a": 12, broken}{"c": 100}', [{'c': 100}]),
+        ('[12,,,,21][211,,,][12,12][12,,,21]', [[12, 12]]),
     )
     def test_parse_json_objects(self, in_data, expected_data):
         result = list(parse_js_objects(in_data))
