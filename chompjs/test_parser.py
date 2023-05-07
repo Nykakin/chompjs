@@ -283,10 +283,28 @@ class TestParseJsonObjects(unittest.TestCase):
         ("[12] [13] [14]", [[12], [13], [14]]),
         ("[10] {'a': [1, 1, 1,]}", [[10], {'a': [1, 1, 1]}]),
         ("[1][1][1]", [[1], [1], [1]]),
+        ("[1] [2] {'a': ", [[1], [2]]),
+        ("[]", [[]]),
+        ("[][][][]", [[], [], [], []]),
+        ("{}", [{}]),
+        ("{}{}{}{}", [{}, {}, {}, {}]),
+        ("{{}}{{}}", []),
+        ("[[]][[]]", [[[]], [[]]]),
+        ("{am: 'ab'}\n{'ab': 'xx'}", [{'am': 'ab'}, {'ab': 'xx'}]),
     )
     def test_parse_json_objects(self, in_data, expected_data):
         result = list(parse_js_objects(in_data))
-        self.assertEqual(result, expected_data)        
+        self.assertEqual(result, expected_data)
+
+    @parametrize_test(
+        ("[1][][2]", [[1], [2]]),
+        ("{'a': 12}{}{'b': 13}", [{'a': 12}, {'b': 13}]),
+        ("[][][][][][][][][]", []),
+        ("{}{}{}{}{}{}{}{}{}", []),
+    )
+    def test_parse_json_objects_without_empty(self, in_data, expected_data):
+        result = list(parse_js_objects(in_data, omitempty=True))
+        self.assertEqual(result, expected_data)
 
 
 if __name__ == '__main__':

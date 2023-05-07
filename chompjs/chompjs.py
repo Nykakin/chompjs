@@ -40,5 +40,7 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
         except ValueError:
             continue
         
-        if data:
-            yield data
+        if not data and omitempty:
+            continue
+
+        yield data

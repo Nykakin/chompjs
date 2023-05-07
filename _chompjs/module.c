@@ -46,7 +46,6 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
 
 typedef struct {
     PyObject_HEAD
-    Py_ssize_t length;
     struct Lexer lexer;
 } JsonIterState;
 
@@ -57,7 +56,7 @@ static PyObject* json_iter_new(PyTypeObject *type, PyObject *args, PyObject *kwa
     }
 
     const char* string;
-    if (!PyArg_ParseTuple(args, "s#", &string, &json_iter_state->length)) {
+    if (!PyArg_ParseTuple(args, "s", &string)) {
         return NULL;
     }
     init_lexer(&json_iter_state->lexer, string, false);
