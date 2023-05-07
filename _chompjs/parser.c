@@ -91,6 +91,7 @@ void reset_lexer_output(struct Lexer* lexer) {
     lexer->lexer_status = CAN_ADVANCE;
     lexer->state = &states[BEGIN_STATE];
     lexer->is_key = false;
+    lexer->input_position -= 1;
 }
 
 void release_lexer(struct Lexer* lexer) {
