@@ -31,10 +31,10 @@ setup(
     author='Mariusz Obajtek',
     author_email='nykakin@gmail.com',
     keywords='parsing parser JavaScript json',
+    python_requires='>=3',
     ext_modules=[chompjs_extension],
     classifiers=[
         "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 3",
         "Programming Language :: JavaScript",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
