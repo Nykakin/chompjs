@@ -11,11 +11,7 @@
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     const char* string;
     int is_jsonlines = 0;
-#if PY_MAJOR_VERSION >= 3
     if (!PyArg_ParseTuple(args, "s|p", &string, &is_jsonlines)) {
-#else
-    if (!PyArg_ParseTuple(args, "s|i", &string, &is_jsonlines)) {
-#endif
         return NULL;
     }
 
@@ -57,8 +53,6 @@ static PyMethodDef parser_methods[] = {
 };
 
 
-#if PY_MAJOR_VERSION >= 3
-
 static struct PyModuleDef parser_definition = { 
     PyModuleDef_HEAD_INIT,
     "_chompjs",
@@ -71,11 +65,3 @@ PyMODINIT_FUNC PyInit__chompjs(void) {
     Py_Initialize();
     return PyModule_Create(&parser_definition);
 }
-
-#else
-
-PyObject* init_chompjs(void) {
-    return Py_InitModule("_chompjs", parser_methods);
-}
-
-#endif

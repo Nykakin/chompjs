@@ -117,31 +117,31 @@ As a result, `json.loads` fail to extract any of those:
 >>> json.loads("{'a': 'b'}")
 Traceback (most recent call last):
   File "<console>", line 1, in <module>
-  File "/usr/lib/python2.7/json/__init__.py", line 339, in loads
+  File "/usr/lib/python3.10/json/__init__.py", line 339, in loads
     return _default_decoder.decode(s)
-  File "/usr/lib/python2.7/json/decoder.py", line 364, in decode
+  File "/usr/lib/python3.10/json/decoder.py", line 364, in decode
     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python2.7/json/decoder.py", line 380, in raw_decode
+  File "/usr/lib/python3.10/json/decoder.py", line 380, in raw_decode
     obj, end = self.scan_once(s, idx)
 ValueError: Expecting property name: line 1 column 2 (char 1)
 >>> json.loads('{a: "b"}')
 Traceback (most recent call last):
   File "<console>", line 1, in <module>
-  File "/usr/lib/python2.7/json/__init__.py", line 339, in loads
+  File "/usr/lib/python3.10/json/__init__.py", line 339, in loads
     return _default_decoder.decode(s)
-  File "/usr/lib/python2.7/json/decoder.py", line 364, in decode
+  File "/usr/lib/python3.10/json/decoder.py", line 364, in decode
     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python2.7/json/decoder.py", line 380, in raw_decode
+  File "/usr/lib/python3.10/json/decoder.py", line 380, in raw_decode
     obj, end = self.scan_once(s, idx)
 ValueError: Expecting property name: line 1 column 2 (char 1)
 >>> json.loads('{"a": [1, 2, 3,]}')
 Traceback (most recent call last):
   File "<console>", line 1, in <module>
-  File "/usr/lib/python2.7/json/__init__.py", line 339, in loads
+  File "/usr/lib/python3.10/json/__init__.py", line 339, in loads
     return _default_decoder.decode(s)
-  File "/usr/lib/python2.7/json/decoder.py", line 364, in decode
+  File "/usr/lib/python3.10/json/decoder.py", line 364, in decode
     obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python2.7/json/decoder.py", line 382, in raw_decode
+  File "/usr/lib/python3.10/json/decoder.py", line 382, in raw_decode
     raise ValueError("No JSON object could be decoded")
 ValueError: No JSON object could be decoded
 >>> json.loads('{"a": .99}')
