@@ -5,7 +5,7 @@ import functools
 import math
 import unittest
 
-from chompjs import parse_js_object
+from chompjs import parse_js_object, parse_js_objects
 
 
 def parametrize_test(*arguments_list):
@@ -270,6 +270,21 @@ class TestOptions(unittest.TestCase):
     def test_json_non_strict(self, in_data, expected_data):
         result = parse_js_object(in_data, json_params={'strict': False})
         self.assertEqual(result, expected_data)
+
+
+
+class TestParseJsonObjects(unittest.TestCase):
+    @parametrize_test(
+        ("", []),
+        ("aaaaaaaaaaaaaaaa", []),
+        ("         ", []),
+        ("      {'a': 12}", [{'a': 12}]),
+        ("[12] [13] [14]", [[12], [13], [14]]),
+        ("[10] {'a': [1, 1, 1,]}", [[10], {'a': [1, 1, 1]}]),
+    )
+    def test_parse_json_objects(self, in_data, expected_data):
+        result = list(parse_js_objects(in_data))
+        self.assertEqual(result, expected_data)        
 
 
 if __name__ == '__main__':

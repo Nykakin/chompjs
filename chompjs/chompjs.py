@@ -6,14 +6,15 @@ from _chompjs import parse, parse_objects
 
 
 def _preprocess(string, unicode_escape=False):
-    if not string:
-        raise ValueError('Invalid input')
     if unicode_escape:
         string = string.encode().decode('unicode_escape')
     return string
 
 
 def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=None):
+    if not string:
+        raise ValueError('Invalid input')
+
     string = _preprocess(string, unicode_escape)
     if not json_params:
         json_params = {}
@@ -27,6 +28,9 @@ def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=N
 
 
 def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):
+    if not string:
+        return
+
     string = _preprocess(string, unicode_escape)
     if not json_params:
         json_params = {}
@@ -35,6 +39,6 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
             data = json.loads(raw_data, **json_params)
         except ValueError:
             continue
-
+        
         if data:
             yield data
