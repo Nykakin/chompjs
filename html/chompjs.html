@@ -54,6 +54,11 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
 
+    &gt;&gt;&gt; parse_js_object(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;)
+    {&#39;\\\\&#34;a\\\\&#34;&#39;: 100}
+    &gt;&gt;&gt; parse_js_object(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;, unicode_escape=True)
+    {&#39;a&#39;: 100}
+
     json_params: dict, optional
         Allow passing down standard json.loads options
 
@@ -99,7 +104,8 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
 
 def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):
     &#34;&#34;&#34;
-    Returns a generator extracting all JSON objects encountered in the input string
+    Returns a generator extracting all JSON objects encountered in the input string.
+    Can be used to read JSON Lines
 
     Parameters
     ----------
@@ -114,6 +120,11 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
 
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
+
+    &gt;&gt;&gt; next(parse_js_objects(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;))
+    {&#39;\\\\&#34;a\\\\&#34;&#39;: 100}
+    &gt;&gt;&gt; next(parse_js_objects(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;, unicode_escape=True))
+    {&#39;a&#39;: 100}
 
     omitempty: bool, optional
         Skip empty dictionaries and lists
@@ -179,6 +190,13 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
 <dl>
 <dt><strong><code>unicode_escape</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Attempt to fix input string if it contains escaped special characters</dd>
+</dl>
+<pre><code class="language-python-repl">&gt;&gt;&gt; parse_js_object('{\\&quot;a\\&quot;: 100}')
+{'\\&quot;a\\&quot;': 100}
+&gt;&gt;&gt; parse_js_object('{\\&quot;a\\&quot;: 100}', unicode_escape=True)
+{'a': 100}
+</code></pre>
+<dl>
 <dt><strong><code>json_params</code></strong> :&ensp;<code>dict</code>, optional</dt>
 <dd>Allow passing down standard json.loads options</dd>
 </dl>
@@ -227,6 +245,11 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
 
+    &gt;&gt;&gt; parse_js_object(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;)
+    {&#39;\\\\&#34;a\\\\&#34;&#39;: 100}
+    &gt;&gt;&gt; parse_js_object(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;, unicode_escape=True)
+    {&#39;a&#39;: 100}
+
     json_params: dict, optional
         Allow passing down standard json.loads options
 
@@ -274,7 +297,8 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 <span>def <span class="ident">parse_js_objects</span></span>(<span>string, unicode_escape=False, omitempty=False, json_params=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns a generator extracting all JSON objects encountered in the input string</p>
+<div class="desc"><p>Returns a generator extracting all JSON objects encountered in the input string.
+Can be used to read JSON Lines</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
@@ -289,6 +313,13 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 <dl>
 <dt><strong><code>unicode_escape</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Attempt to fix input string if it contains escaped special characters</dd>
+</dl>
+<pre><code class="language-python-repl">&gt;&gt;&gt; next(parse_js_objects('{\\&quot;a\\&quot;: 100}'))
+{'\\&quot;a\\&quot;': 100}
+&gt;&gt;&gt; next(parse_js_objects('{\\&quot;a\\&quot;: 100}', unicode_escape=True))
+{'a': 100}
+</code></pre>
+<dl>
 <dt><strong><code>omitempty</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Skip empty dictionaries and lists</dd>
 </dl>
@@ -318,7 +349,8 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 </summary>
 <pre><code class="python">def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):
     &#34;&#34;&#34;
-    Returns a generator extracting all JSON objects encountered in the input string
+    Returns a generator extracting all JSON objects encountered in the input string.
+    Can be used to read JSON Lines
 
     Parameters
     ----------
@@ -333,6 +365,11 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
+
+    &gt;&gt;&gt; next(parse_js_objects(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;))
+    {&#39;\\\\&#34;a\\\\&#34;&#39;: 100}
+    &gt;&gt;&gt; next(parse_js_objects(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;, unicode_escape=True))
+    {&#39;a&#39;: 100}
 
     omitempty: bool, optional
         Skip empty dictionaries and lists

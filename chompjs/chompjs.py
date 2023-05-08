@@ -26,6 +26,11 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
 
+    >>> parse_js_object('{\\\\"a\\\\": 100}')
+    {'\\\\"a\\\\"': 100}
+    >>> parse_js_object('{\\\\"a\\\\": 100}', unicode_escape=True)
+    {'a': 100}
+
     json_params: dict, optional
         Allow passing down standard json.loads options
 
@@ -71,7 +76,8 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
 
 def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):
     """
-    Returns a generator extracting all JSON objects encountered in the input string
+    Returns a generator extracting all JSON objects encountered in the input string.
+    Can be used to read JSON Lines
 
     Parameters
     ----------
@@ -86,6 +92,11 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
 
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
+
+    >>> next(parse_js_objects('{\\\\"a\\\\": 100}'))
+    {'\\\\"a\\\\"': 100}
+    >>> next(parse_js_objects('{\\\\"a\\\\": 100}', unicode_escape=True))
+    {'a': 100}
 
     omitempty: bool, optional
         Skip empty dictionaries and lists
