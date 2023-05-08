@@ -26,11 +26,6 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
 
-#    >>> parse_js_object('{\\"a\\": 100}')
-#    {'\\"a\\"': 100}
-    >>> parse_js_object('{\\"a\\": 100}', unicode_escape=True)
-    {'a': 100}
-
     json_params: dict, optional
         Allow passing down standard json.loads options
 
@@ -49,6 +44,19 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     ------
     ValueError
         If failed to parse input properly
+
+    ```python
+    >>> parse_js_object(None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Invalid input
+    >>> parse_js_object("No JSON objects in sight...")
+    Traceback (most recent call last):
+      ...
+    json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+    ```
+
     """
     if not string:
         raise ValueError('Invalid input')
