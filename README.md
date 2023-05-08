@@ -12,6 +12,7 @@ In web scraping, you sometimes need to transform Javascript objects embedded in 
 ```python
 >>> chompjs.parse_js_object("{a: 100}")
 {'a': 100}
+>>>
 >>> json_lines = """
 ... {'a': 12}
 ... {'b': 13}
