@@ -5,9 +5,9 @@
 ![python version](https://img.shields.io/pypi/pyversions/chompjs.svg)
 ![downloads](https://img.shields.io/pypi/dm/chompjs.svg)
 
-Transforms JavaScript objects into Python dictionaries.
+Transforms JavaScript objects into Python data structures.
 
-In web scraping, you sometimes need to transform Javascript objects embedded in HTML pages into valid Python dictionaries. `chompjs` is a library designed to be a more powerful replacement of standard `json.loads`.
+In web scraping, you sometimes need to transform Javascript objects embedded in HTML pages into valid Python dictionaries. `chompjs` is a library designed to do that as a more powerful replacement of standard `json.loads`:
 
 ```python
 >>> chompjs.parse_js_object("{a: 100}")
@@ -49,7 +49,7 @@ $ python setup.py install
 
 There are two functions available:
 * `parse_js_object` - try reading first encountered JSON-like object. Raises `ValueError` on failure
-* `parse_js_objects` - returns a generator yielding all encountered JSON-like objects. Can be used to read [JSON Lines](https://jsonlines.org/)
+* `parse_js_objects` - returns a generator yielding all encountered JSON-like objects. Can be used to read [JSON Lines](https://jsonlines.org/). Does not raise on ivalid input.
 
 An example usage with `scrapy`:
 
