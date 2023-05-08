@@ -64,7 +64,6 @@ struct Lexer {
     struct State* state;
     struct CharBuffer nesting_depth;
     size_t unrecognized_nesting_depth;
-    bool is_jsonlines;
     bool is_key;
 };
 
@@ -99,7 +98,7 @@ void emit_number_in_place(long value, struct Lexer* lexer);
 void handle_comments(struct Lexer* lexer);
 
 /** Initialize main lexer object */
-void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines);
+void init_lexer(struct Lexer* lexer, const char* string);
 
 /** Reset main lexer object output buffer */
 void reset_lexer_output(struct Lexer* lexer);
