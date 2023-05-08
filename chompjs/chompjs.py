@@ -11,7 +11,7 @@ def _preprocess(string, unicode_escape=False):
     return string
 
 
-def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=None):
+def parse_js_object(string, unicode_escape=False, json_params=None):
     """Extracts first JSON object it encounters in the input string
 
     Parameters
@@ -55,7 +55,6 @@ def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=N
 #            parameter.
 #        """
 
-
     if not string:
         raise ValueError('Invalid input')
 
@@ -63,12 +62,8 @@ def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=N
     if not json_params:
         json_params = {}
 
-    parsed_data = parse(string, jsonlines)
-
-    if jsonlines:
-        return [json.loads(j, **json_params) for j in parsed_data.split('\0')]
-    else:
-        return json.loads(parsed_data, **json_params)
+    parsed_data = parse(string)
+    return json.loads(parsed_data, **json_params)
 
 
 def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):

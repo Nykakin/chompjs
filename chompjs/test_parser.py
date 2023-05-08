@@ -213,7 +213,7 @@ class TestParser(unittest.TestCase):
         ('["Test\\nDrive"]\n{"Test": "Drive"}', [['Test\nDrive'], {'Test': 'Drive'}]),
     )
     def test_jsonlines(self, in_data, expected_data):
-        result = parse_js_object(in_data, jsonlines=True)
+        result = list(parse_js_objects(in_data))
         self.assertEqual(result, expected_data)
 
 

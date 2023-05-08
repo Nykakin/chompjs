@@ -70,7 +70,7 @@ void emit_number_in_place(long value, struct Lexer* lexer) {
     push_number(&lexer->output, value);
 }
 
-void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
+void init_lexer(struct Lexer* lexer, const char* string) {
     lexer->input = string;
     // allocate in advance more memory for output than for input because we might need
     // to add extra characters
@@ -82,7 +82,6 @@ void init_lexer(struct Lexer* lexer, const char* string, bool is_jsonlines) {
     lexer->unrecognized_nesting_depth = 0;
     lexer->lexer_status = CAN_ADVANCE;
     lexer->state = &states[BEGIN_STATE];
-    lexer->is_jsonlines = is_jsonlines;
     lexer->is_key = false;
 }
 
@@ -136,12 +135,7 @@ struct State* json(struct Lexer* lexer) {
             lexer->is_key = top(&lexer->nesting_depth) == '{';
             emit('}', lexer);
             if(size(&lexer->nesting_depth) <= 0) {
-                if(lexer->is_jsonlines) {
-                    emit_in_place('\0', lexer);
-                    return &states[BEGIN_STATE];
-                } else {
-                    return &states[END_STATE];
-                }
+                return &states[END_STATE];
             }
         break;
         case ']':
@@ -152,12 +146,7 @@ struct State* json(struct Lexer* lexer) {
             lexer->is_key = top(&lexer->nesting_depth) == '{';
             emit(']', lexer);
             if(size(&lexer->nesting_depth) <= 0) {
-                if(lexer->is_jsonlines) {
-                    emit_in_place('\0', lexer);
-                    return &states[BEGIN_STATE];
-                } else {
-                    return &states[END_STATE];
-                }
+                return &states[END_STATE];
             }
         break;
         case ':':
@@ -232,9 +221,7 @@ struct State* value(struct Lexer* lexer) {
 }
 
 struct State* end(struct Lexer* lexer) {
-    if(!lexer->is_jsonlines) {
-        emit('\0', lexer);
-    }
+    emit('\0', lexer);
     lexer->lexer_status = FINISHED;
     return lexer->state;
 }
