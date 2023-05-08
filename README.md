@@ -26,6 +26,8 @@ In web scraping, you sometimes need to transform Javascript objects embedded in 
 {'c': 14}
 ```
 
+[Reference documentation](https://nykakin.github.io/chompjs/)
+
 ## Quickstart
 
 **1. installation**
