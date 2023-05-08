@@ -4,6 +4,7 @@
 * Drop support for Python 2.7 (#44)
 * Add parse_js_objects function (#45)
 * Drop jsonlines flag in parse_json_object in favor of parse_json_objects (#46)
+* Improve documentation (#47, #32)
 
 1.1.9
 * Handle NaN in input (#37)
