@@ -10,13 +10,12 @@
 
 static PyObject* parse_python_object(PyObject *self, PyObject *args) {
     const char* string;
-    int is_jsonlines = 0;
-    if (!PyArg_ParseTuple(args, "s|p", &string, &is_jsonlines)) {
+    if (!PyArg_ParseTuple(args, "s", &string)) {
         return NULL;
     }
 
     struct Lexer lexer;
-    init_lexer(&lexer, string, is_jsonlines);
+    init_lexer(&lexer, string);
     while(lexer.lexer_status == CAN_ADVANCE) {
         advance(&lexer);
     }
@@ -59,7 +58,7 @@ static PyObject* json_iter_new(PyTypeObject *type, PyObject *args, PyObject *kwa
     if (!PyArg_ParseTuple(args, "s", &string)) {
         return NULL;
     }
-    init_lexer(&json_iter_state->lexer, string, false);
+    init_lexer(&json_iter_state->lexer, string);
 
     return (PyObject* )json_iter_state;
 }
