@@ -2,6 +2,7 @@
 * Allow trailing dot at the end of numerals (#39)
 * Parse hexadecimal, binary and octal literals as numbers (#40)
 * Drop support for Python 2.7 (#44)
+* Add parse_js_objects function (#45)
 
 1.1.9
 * Handle NaN in input (#37)
