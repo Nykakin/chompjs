@@ -12,6 +12,50 @@ def _preprocess(string, unicode_escape=False):
 
 
 def parse_js_object(string, unicode_escape=False, jsonlines=False, json_params=None):
+    """Extracts first JSON object it encounters in the input string
+
+    Parameters
+    ----------
+    string: str
+        Input string
+        >>> parse_js_object("{a: 100}")
+        {'a': 100}
+
+    unicode_escape: bool, optional
+        Attempt to fix input string if it contains escaped special characters
+        >>> parse_js_object('{\\"a\\": \\"b\\"}')
+        {'\\"a\\"': '\\"b\\"'}
+        >>> parse_js_object('{\\"a\\": \\"b\\"}', unicode_escape=True)
+        {'a': 'b'}
+
+    jsonlines: bool, optional
+        Allow parsing jsonlines objects
+
+        Raises
+        ------
+        ValueError
+            If failed to parse input properly
+    """
+
+
+#        """Prints what the animals name is and what sound it makes.
+#
+#        If the argument `sound` isn't passed in, the default Animal
+#        sound is used.
+#
+#        Parameters
+#        ----------
+#        sound : str, optional
+#            The sound the animal makes (default is None)
+#
+#        Raises
+#        ------
+#        NotImplementedError
+#            If no sound is set for the animal or passed in as a
+#            parameter.
+#        """
+
+
     if not string:
         raise ValueError('Invalid input')
 
