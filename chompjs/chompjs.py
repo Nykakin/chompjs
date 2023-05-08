@@ -26,8 +26,13 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     unicode_escape: bool, optional
         Attempt to fix input string if it contains escaped special characters
 
+#    >>> parse_js_object('{\\"a\\": 100}')
+#    {'\\"a\\"': 100}
+    >>> parse_js_object('{\\"a\\": 100}', unicode_escape=True)
+    {'a': 100}
+
     json_params: dict, optional
-        Allow passing down standard json.loads flags
+        Allow passing down standard json.loads options
 
     >>> parse_js_object("{'a': 10.1}")
     {'a': 10.1}
@@ -44,27 +49,6 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     ------
     ValueError
         If failed to parse input properly
-
-    ```python
-    >>> parse_js_object(None)
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/home/mariusz/Documents/Projekty/chompjs/chompjs/chompjs.py", line 49, in parse_js_object
-        raise ValueError('Invalid input')
-    ValueError: Invalid input
-    >>> parse_js_object("")
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/home/mariusz/Documents/Projekty/chompjs/chompjs/chompjs.py", line 49, in parse_js_object
-        raise ValueError('Invalid input')
-    ValueError: Invalid input
-    >>> parse_js_object("{'a': 12")
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/home/mariusz/Documents/Projekty/chompjs/chompjs/chompjs.py", line 55, in parse_js_object
-        parsed_data = parse(string)
-    ValueError: Error parsing input near character 15
-    ```
     """
     if not string:
         raise ValueError('Invalid input')
