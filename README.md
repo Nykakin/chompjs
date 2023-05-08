@@ -5,9 +5,26 @@
 ![python version](https://img.shields.io/pypi/pyversions/chompjs.svg)
 ![downloads](https://img.shields.io/pypi/dm/chompjs.svg)
 
-Transform JavaScript objects into Python dictionaries!
+Transforms JavaScript objects into Python dictionaries.
 
-When scraping, you sometimes need to transform Javascript objects embedded in HTML pages into valid Python dictionaries. It can be error-prone and difficult. Chompjs is here to help.
+In web scraping, you sometimes need to transform Javascript objects embedded in HTML pages into valid Python dictionaries. `chompjs` is a library designed to be a more powerful replacement of standard `json.loads`.
+
+```python
+>>> chompjs.parse_js_object("{a: 100}")
+{'a': 100}
+>>>
+>>> json_lines = """
+... {'a': 12}
+... {'b': 13}
+... {'c': 14}
+... """
+>>> for entry in chompjs.parse_js_objects(json_lines):
+...     print(entry)
+... 
+{'a': 12}
+{'b': 13}
+{'c': 14}
+```
 
 ## Quickstart
 
@@ -26,31 +43,11 @@ $ python setup.py build
 $ python setup.py install
 ```
 
-**2. usage**
-
-```python
->>> import chompjs
->>> chompjs.parse_js_object('{"my_data": "test"}')
-{u'my_data': u'test'}
-```
-
 ## Features
 
-Think of it as a more powerful `json.loads`. For example, it can handle JSON objects containing embedded methods by storing their code in a string:
-
-```python
->>> import chompjs
->>> js = """
-... var myObj = {
-...     myMethod: function(params) {
-...         // ...
-...     },
-...     myValue: 100
-... }
-... """
->>> chompjs.parse_js_object(js, json_params={'strict': False})
-{'myMethod': 'function(params) {\n        // ...\n    }', 'myValue': 100}
-```
+There are two functions available:
+* `parse_js_object` - try reading first encountered JSON-like object. Raises `ValueError` on failure
+* `parse_js_objects` - returns a generator yielding all encountered JSON-like objects. Can be used to read [JSON Lines](https://jsonlines.org/)
 
 An example usage with `scrapy`:
 
@@ -77,18 +74,32 @@ class MySpider(scrapy.Spider):
         # work on json_data
 ```
 
+Parsing of [JSON5 objects](https://json5.org/) is supported:
+
+```python
+>>> data = """
+... {
+...   // comments
+...   unquoted: 'and you can quote me on that',
+...   singleQuotes: 'I can use "double quotes" here',
+...   lineBreaks: "Look, Mom! \
+... No \\n's!",
+...   hexadecimal: 0xdecaf,
+...   leadingDecimalPoint: .8675309, andTrailing: 8675309.,
+...   positiveSign: +1,
+...   trailingComma: 'in objects', andIn: ['arrays',],
+...   "backwardsCompatible": "with JSON",
+... }
+... """
+>>> chompjs.parse_js_object(data)
+{'unquoted': 'and you can quote me on that', 'singleQuotes': 'I can use "double quotes" here', 'lineBreaks': "Look, Mom! No \n's!", 'hexadecimal': 912559, 'leadingDecimalPoint': 0.8675309, 'andTrailing': 8675309.0, 'positiveSign': '+1', 'trailingComma': 'in objects', 'andIn': ['arrays'], 'backwardsCompatible': 'with JSON'}
+```
+
 If the input string is not yet escaped and contains a lot of `\\` characters, then `unicode_escape=True` argument might help to sanitize it:
 
 ```python
 >>> chompjs.parse_js_object('{\\\"a\\\": 12}', unicode_escape=True)
-{u'a': 12}
-```
-
-`jsonlines=True` can be used to parse JSON Lines:
-
-```python
->>> chompjs.parse_js_object('[1,2]\n[2,3]\n[3,4]', jsonlines=True)
-[[1, 2], [2, 3], [3, 4]]
+{'a': 12}
 ```
 
 By default `chompjs` tries to start with first `{` or `[` character it founds, omitting the rest:
@@ -217,5 +228,5 @@ Pull requests are welcome.
 To run unittests
 
 ```
-$ python -m unittest
+$ tox
 ```
