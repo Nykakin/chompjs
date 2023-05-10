@@ -157,43 +157,19 @@ As a result, `json.loads` fail to extract any of those:
 ```python
 >>> json.loads("{'a': 'b'}")
 Traceback (most recent call last):
-  File "<console>", line 1, in <module>
-  File "/usr/lib/python3.10/json/__init__.py", line 339, in loads
-    return _default_decoder.decode(s)
-  File "/usr/lib/python3.10/json/decoder.py", line 364, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python3.10/json/decoder.py", line 380, in raw_decode
-    obj, end = self.scan_once(s, idx)
+  ...
 ValueError: Expecting property name: line 1 column 2 (char 1)
 >>> json.loads('{a: "b"}')
 Traceback (most recent call last):
-  File "<console>", line 1, in <module>
-  File "/usr/lib/python3.10/json/__init__.py", line 339, in loads
-    return _default_decoder.decode(s)
-  File "/usr/lib/python3.10/json/decoder.py", line 364, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python3.10/json/decoder.py", line 380, in raw_decode
-    obj, end = self.scan_once(s, idx)
+  ...
 ValueError: Expecting property name: line 1 column 2 (char 1)
 >>> json.loads('{"a": [1, 2, 3,]}')
 Traceback (most recent call last):
-  File "<console>", line 1, in <module>
-  File "/usr/lib/python3.10/json/__init__.py", line 339, in loads
-    return _default_decoder.decode(s)
-  File "/usr/lib/python3.10/json/decoder.py", line 364, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python3.10/json/decoder.py", line 382, in raw_decode
-    raise ValueError("No JSON object could be decoded")
+  ...
 ValueError: No JSON object could be decoded
 >>> json.loads('{"a": .99}')
 Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-  File "/usr/lib/python3.7/json/__init__.py", line 348, in loads
-    return _default_decoder.decode(s)
-  File "/usr/lib/python3.7/json/decoder.py", line 337, in decode
-    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
-  File "/usr/lib/python3.7/json/decoder.py", line 355, in raw_decode
-    raise JSONDecodeError("Expecting value", s, err.value) from None
+  ...
 json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 
 ```
@@ -203,11 +179,13 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 >>> import chompjs
 >>> 
 >>> chompjs.parse_js_object("{'a': 'b'}")
-{u'a': u'b'}
+{'a': 'b'}
 >>> chompjs.parse_js_object('{a: "b"}')
-{u'a': u'b'}
+{'a': 'b'}
 >>> chompjs.parse_js_object('{"a": [1, 2, 3,]}')
-{u'a': [1, 2, 3]}
+{'a': [1, 2, 3]}
+>>> chompjs.parse_js_object('{"a": .99}')
+{'a': 0.99}
 ```
 
 Internally `chompjs` use a parser written in C to iterate over raw string, fixing its issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full-blown JavaScript parsers such as `demjson`.
@@ -219,9 +197,7 @@ Internally `chompjs` use a parser written in C to iterate over raw string, fixin
 >>> _chompjs.parse('{a: 1}')
 '{"a":1}'
 >>> json.loads(_)
-{u'a': 1}
->>> chompjs.parse_js_object('{"a": .99}')
-{'a': 0.99}
+{'a': 1}
 ```
 
 # Development
