@@ -154,7 +154,7 @@ The problem is that not all valid JavaScript objects are also valid JSONs. For e
 
 As a result, `json.loads` fail to extract any of those:
 
-```
+```python
 >>> json.loads("{'a': 'b'}")
 Traceback (most recent call last):
   File "<console>", line 1, in <module>
@@ -199,7 +199,7 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 ```
 `chompjs` library was designed to bypass this limitation, and it allows to scrape such JavaScript objects into proper Python dictionaries:
 
-```
+```python
 >>> import chompjs
 >>> 
 >>> chompjs.parse_js_object("{'a': 'b'}")
@@ -212,7 +212,7 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 
 Internally `chompjs` use a parser written in C to iterate over raw string, fixing its issues along the way. The final result is then passed down to standard library's `json.loads`, ensuring a high speed as compared to full-blown JavaScript parsers such as `demjson`.
 
-```
+```python
 >>> import json
 >>> import _chompjs
 >>> 
