@@ -1,3 +1,6 @@
+1.2.1
+* Fix compilation on Windows (#49)
+
 1.2.0
 * Allow trailing dot at the end of numerals (#39)
 * Parse hexadecimal, binary and octal literals as numbers (#40)
