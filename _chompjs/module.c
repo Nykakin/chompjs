@@ -85,7 +85,7 @@ static PyObject* json_iter_next(JsonIterState* json_iter_state) {
 }
 
 PyTypeObject JSONIter_Type = {
-    PyVarObject_HEAD_INIT(&PyType_Type, 0)
+    PyVarObject_HEAD_INIT(NULL, 0)
     "json_iter",                    /* tp_name */
     sizeof(JsonIterState),          /* tp_basicsize */
     0,                              /* tp_itemsize */
