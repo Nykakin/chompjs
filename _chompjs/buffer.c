@@ -40,7 +40,12 @@ void push_string(struct CharBuffer* buffer, const char* value, size_t len) {
 }
 
 void push_number(struct CharBuffer* buffer, long value) {
-    int size_in_chars = (int)((ceil(log10(value))));
+    int size_in_chars;
+    if (value == 0) {
+        size_in_chars = 2;
+    } else {
+        size_in_chars = floor(log10(value)) + 2;
+    }
     check_capacity(buffer, size_in_chars);
     buffer->index += sprintf(buffer->data + buffer->index, "%ld", value);
 }
