@@ -1,3 +1,7 @@
+1.2.2
+* Fix parsing some floating numbers as octal (#52)
+* Fix number of digits calculation (#50)
+
 1.2.1
 * Fix compilation on Windows (#49)
 
