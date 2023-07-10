@@ -40,7 +40,7 @@
 * Handle comments in JavaScript code (#22)
 
 1.1.1
-* Fix instalation bug (headers moved to a different dir)
+* Fix installation bug (headers moved to a different dir)
 
 1.1.0
 * Parser refactored and rewritten in order to simplify code and improve speed

@@ -49,7 +49,7 @@ $ python setup.py install
 
 There are two functions available:
 * `parse_js_object` - try reading first encountered JSON-like object. Raises `ValueError` on failure
-* `parse_js_objects` - returns a generator yielding all encountered JSON-like objects. Can be used to read [JSON Lines](https://jsonlines.org/). Does not raise on ivalid input.
+* `parse_js_objects` - returns a generator yielding all encountered JSON-like objects. Can be used to read [JSON Lines](https://jsonlines.org/). Does not raise on invalid input.
 
 An example usage with `scrapy`:
 
