@@ -107,7 +107,9 @@ class TestParser(unittest.TestCase):
         ("{regex: /a[^d]{1,12}/i}", {'regex': '/a[^d]{1,12}/i'}),
         ("{'a': function(){return '\"'}}", {'a': 'function(){return \'"\'}'}),
         ("{1: 1, 2: 2, 3: 3, 4: 4}", {'1': 1, '2': 2, '3': 3, '4': 4}),
-        ("{'a': 121.}", {'a': 121.0})
+        ("{'a': 121.}", {'a': 121.0}),
+        ("{abc : 100}", {'abc': 100}),
+        ("{abc     :       100}", {'abc': 100}),
     )
     def test_parse_strange_values(self, in_data, expected_data):
         result = parse_js_object(in_data)
