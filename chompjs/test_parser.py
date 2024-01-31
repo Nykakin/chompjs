@@ -110,6 +110,12 @@ class TestParser(unittest.TestCase):
         ("{'a': 121.}", {'a': 121.0}),
         ("{abc : 100}", {'abc': 100}),
         ("{abc     :       100}", {'abc': 100}),
+        ("{abc: name }", {'abc': "name"}),
+        ("{abc: name\t}", {'abc': "name"}),
+        ("{abc: value\n}", {'abc': "value"}),
+        ("{abc:  name}", {'abc': "name"}),
+        ("{abc: \tname}", {'abc': "name"}),
+        ("{abc: \nvalue}", {'abc': "value"}),
     )
     def test_parse_strange_values(self, in_data, expected_data):
         result = parse_js_object(in_data)
