@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2023 Mariusz Obajtek. All rights reserved.
+ * Copyright 2020-2024 Mariusz Obajtek. All rights reserved.
  * License: https://github.com/Nykakin/chompjs/blob/master/LICENSE
  */
 
