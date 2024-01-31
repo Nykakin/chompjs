@@ -1,3 +1,6 @@
+1.2.3
+* Remove trailing whitespaces from unquoted keys (#57)
+
 1.2.2
 * Fix parsing some floating numbers as octal (#52)
 * Fix number of digits calculation (#50)
