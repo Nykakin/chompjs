@@ -61,7 +61,6 @@ struct Lexer {
     size_t output_size;
     struct CharBuffer output;
     size_t input_position;
-    size_t output_position;
     LexerStatus lexer_status;
     struct State* state;
     struct CharBuffer nesting_depth;
