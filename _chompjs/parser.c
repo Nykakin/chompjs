@@ -393,7 +393,7 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
             case ',':
             case ':':
                 if(!currently_quoted_with && lexer->unrecognized_nesting_depth <= 0) {
-                    // remove trailing whitespaces before ':'
+                    // remove trailing whitespaces after key
                     while(isspace(last_char(lexer))) {
                         pop(&lexer->output);
                     }
