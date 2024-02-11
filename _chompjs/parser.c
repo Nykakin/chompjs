@@ -381,6 +381,10 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
                     emit(c, lexer);
                     lexer->unrecognized_nesting_depth -= 1;
                 } else {
+                    // remove trailing whitespaces after value
+                    while(isspace(last_char(lexer))) {
+                        pop(&lexer->output);
+                    }
                     emit_in_place('"', lexer);
                     return &states[JSON_STATE];
                 }
@@ -389,7 +393,7 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
             case ',':
             case ':':
                 if(!currently_quoted_with && lexer->unrecognized_nesting_depth <= 0) {
-                    // remove trailing whitespaces
+                    // remove trailing whitespaces after key
                     while(isspace(last_char(lexer))) {
                         pop(&lexer->output);
                     }
