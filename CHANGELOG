@@ -1,4 +1,4 @@
-[upcoming]
+[1.2.4]
 * Remove trailing whitespaces for unrecognized values (#59)
 * Fix segfault on empty string (#62)
 
