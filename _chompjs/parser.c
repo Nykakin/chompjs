@@ -75,7 +75,7 @@ void init_lexer(struct Lexer* lexer, const char* string) {
     // allocate in advance more memory for output than for input because we might need
     // to add extra characters
     // for example `{a: undefined}` will be translated as `{"a": "undefined"}`
-    lexer->output_size = 2 * strlen(string);
+    lexer->output_size = 2 * strlen(string) + 1;
     init_char_buffer(&lexer->output, lexer->output_size);
     lexer->input_position = 0;
     init_char_buffer(&lexer->nesting_depth, INITIAL_NESTING_DEPTH);

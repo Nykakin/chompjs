@@ -1,3 +1,7 @@
+[upcoming]
+* Remove trailing whitespaces for unrecognized values (#59)
+* Fix segfault on empty string (#62)
+
 1.2.3
 * Remove trailing whitespaces from unquoted keys (#57)
 
