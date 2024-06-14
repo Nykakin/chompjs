@@ -283,6 +283,18 @@ class TestOptions(unittest.TestCase):
         result = parse_js_object(in_data, loader_kwargs={'strict': False})
         self.assertEqual(result, expected_data)
 
+    @parametrize_test(
+        ("[]", []),
+        ("[1, 2, 3]", [1, 2, 3]),
+        ('var x = [1, 2, 3, 4, 5,]', [1, 2, 3, 4, 5]),
+        ('{}', {}),
+        ("{'a': 12, 'b': 13, 'c': 14}", {'a': 12, 'b': 13, 'c': 14}),
+        ("var x = {'a': 12, 'b': 13, 'c': 14}", {'a': 12, 'b': 13, 'c': 14}),
+    )
+    def test_loader(self, in_data, expected_data):
+        import ast
+        result = parse_js_object(in_data, loader=ast.literal_eval)
+        self.assertEqual(result, expected_data)
 
 
 class TestParseJsonObjects(unittest.TestCase):
