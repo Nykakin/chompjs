@@ -29,17 +29,40 @@
 <pre><code class="python"># -*- coding: utf-8 -*-
 
 import json
+import warnings
 
 from _chompjs import parse, parse_objects
 
 
 def _preprocess(string, unicode_escape=False):
     if unicode_escape:
-        string = string.encode().decode(&#39;unicode_escape&#39;)
+        string = string.encode().decode(&#34;unicode_escape&#34;)
     return string
 
 
-def parse_js_object(string, unicode_escape=False, json_params=None):
+def _process_loader_arguments(loader_args, loader_kwargs, json_params):
+    if json_params:
+        msg = &#34;json_params argument is deprecated, please use loader_kwargs instead&#34;
+        warnings.warn(msg, DeprecationWarning)
+        loader_kwargs = json_params
+
+    if not loader_args:
+        loader_args = []
+
+    if not loader_kwargs:
+        loader_kwargs = {}
+
+    return (loader_args, loader_kwargs)
+
+
+def parse_js_object(
+    string,
+    unicode_escape=False,
+    loader=json.loads,
+    loader_args=None,
+    loader_kwargs=None,
+    json_params=None,
+):
     &#34;&#34;&#34;
     Extracts first JSON object encountered in the input string
 
@@ -59,14 +82,30 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
     &gt;&gt;&gt; parse_js_object(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;, unicode_escape=True)
     {&#39;a&#39;: 100}
 
-    json_params: dict, optional
-        Allow passing down standard json.loads options
+    loader: func, optional
+        Function used to load processed input data. By default `json.loads` is used
+
+    &gt;&gt;&gt; import orjson
+    &gt;&gt;&gt; import chompjs
+    &gt;&gt;&gt; 
+    &gt;&gt;&gt; chompjs.parse_js_object(&#34;{&#39;a&#39;: 12}&#34;, loader=orjson.loads)
+    {&#39;a&#39;: 12}
+
+    loader_args: list, optional
+        Allow passing down positional arguments to loader function
+
+    loader_kwargs: dict, optional
+        Allow passing down keyword arguments to loader function
 
     &gt;&gt;&gt; parse_js_object(&#34;{&#39;a&#39;: 10.1}&#34;)
     {&#39;a&#39;: 10.1}
     &gt;&gt;&gt; import decimal
-    &gt;&gt;&gt; parse_js_object(&#34;{&#39;a&#39;: 10.1}&#34;, json_params={&#39;parse_float&#39;: decimal.Decimal})
+    &gt;&gt;&gt; parse_js_object(&#34;{&#39;a&#39;: 10.1}&#34;, loader_kwargs={&#39;parse_float&#39;: decimal.Decimal})
     {&#39;a&#39;: Decimal(&#39;10.1&#39;)}
+
+    .. deprecated:: 1.3.0
+    json_params: dict, optional
+        Use `loader_kwargs` instead
 
     Returns
     -------
@@ -92,17 +131,30 @@ def parse_js_object(string, unicode_escape=False, json_params=None):
 
     &#34;&#34;&#34;
     if not string:
-        raise ValueError(&#39;Invalid input&#39;)
+        raise ValueError(&#34;Invalid input&#34;)
+
+    loader_args, loader_kwargs = _process_loader_arguments(
+        loader_args, loader_kwargs, json_params
+    )
+
+    if json_params:
+        msg = &#34;json_params argument is deprecated, please use loader_kwargs instead&#34;
+        warnings.warn(msg, DeprecationWarning)
 
     string = _preprocess(string, unicode_escape)
-    if not json_params:
-        json_params = {}
-
     parsed_data = parse(string)
-    return json.loads(parsed_data, **json_params)
+    return loader(parsed_data, *loader_args, **loader_kwargs)
 
 
-def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):
+def parse_js_objects(
+    string,
+    unicode_escape=False,
+    omitempty=False, 
+    loader=json.loads,
+    loader_args=None,
+    loader_kwargs=None,
+    json_params=None,
+):
     &#34;&#34;&#34;
     Returns a generator extracting all JSON objects encountered in the input string.
     Can be used to read JSON Lines
@@ -134,14 +186,30 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
     &gt;&gt;&gt; list(parse_js_objects(&#34;{a: 12} {} {b: 13}&#34;, omitempty=True))
     [{&#39;a&#39;: 12}, {&#39;b&#39;: 13}]
 
-    json_params: dict, optional
-        Allow passing down standard json.loads flags
+    loader: func, optional
+        Function used to load processed input data. By default `json.loads` is used
+
+    &gt;&gt;&gt; import orjson
+    &gt;&gt;&gt; import chompjs
+    &gt;&gt;&gt; 
+    &gt;&gt;&gt; next(chompjs.parse_js_objects(&#34;{&#39;a&#39;: 12}&#34;, loader=orjson.loads))
+    {&#39;a&#39;: 12}
+
+    loader_args: list, optional
+        Allow passing down positional arguments to loader function
+
+    loader_kwargs: dict, optional
+        Allow passing down keyword arguments to loader function
 
     &gt;&gt;&gt; next(parse_js_objects(&#34;{&#39;a&#39;: 10.1}&#34;))
     {&#39;a&#39;: 10.1}
     &gt;&gt;&gt; import decimal
-    &gt;&gt;&gt; next(parse_js_objects(&#34;{&#39;a&#39;: 10.1}&#34;, json_params={&#39;parse_float&#39;: decimal.Decimal}))
+    &gt;&gt;&gt; next(parse_js_objects(&#34;{&#39;a&#39;: 10.1}&#34;, loader_kwargs={&#39;parse_float&#39;: decimal.Decimal}))
     {&#39;a&#39;: Decimal(&#39;10.1&#39;)}
+
+    .. deprecated:: 1.3.0
+    json_params: dict, optional
+        Use `loader_kwargs` instead
 
     Returns
     -------
@@ -152,15 +220,17 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
     if not string:
         return
 
+    loader_args, loader_kwargs = _process_loader_arguments(
+        loader_args, loader_kwargs, json_params
+    )
+
     string = _preprocess(string, unicode_escape)
-    if not json_params:
-        json_params = {}
     for raw_data in parse_objects(string):
         try:
-            data = json.loads(raw_data, **json_params)
+            data = loader(raw_data, *loader_args, **loader_kwargs)
         except ValueError:
             continue
-        
+
         if not data and omitempty:
             continue
 
@@ -175,7 +245,7 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="chompjs.parse_js_object"><code class="name flex">
-<span>def <span class="ident">parse_js_object</span></span>(<span>string, unicode_escape=False, json_params=None)</span>
+<span>def <span class="ident">parse_js_object</span></span>(<span>string, unicode_escape=False, loader=&lt;function loads&gt;, loader_args=None, loader_kwargs=None, json_params=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Extracts first JSON object encountered in the input string</p>
@@ -197,15 +267,34 @@ def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=
 {'a': 100}
 </code></pre>
 <dl>
-<dt><strong><code>json_params</code></strong> :&ensp;<code>dict</code>, optional</dt>
-<dd>Allow passing down standard json.loads options</dd>
+<dt><strong><code>loader</code></strong> :&ensp;<code>func</code>, optional</dt>
+<dd>Function used to load processed input data. By default <code>json.loads</code> is used</dd>
+</dl>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import orjson
+&gt;&gt;&gt; import chompjs
+&gt;&gt;&gt; 
+&gt;&gt;&gt; chompjs.parse_js_object(&quot;{'a': 12}&quot;, loader=orjson.loads)
+{'a': 12}
+</code></pre>
+<dl>
+<dt><strong><code>loader_args</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>Allow passing down positional arguments to loader function</dd>
+<dt><strong><code>loader_kwargs</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>Allow passing down keyword arguments to loader function</dd>
 </dl>
 <pre><code class="language-python-repl">&gt;&gt;&gt; parse_js_object(&quot;{'a': 10.1}&quot;)
 {'a': 10.1}
 &gt;&gt;&gt; import decimal
-&gt;&gt;&gt; parse_js_object(&quot;{'a': 10.1}&quot;, json_params={'parse_float': decimal.Decimal})
+&gt;&gt;&gt; parse_js_object(&quot;{'a': 10.1}&quot;, loader_kwargs={'parse_float': decimal.Decimal})
 {'a': Decimal('10.1')}
 </code></pre>
+<div class="admonition deprecated">
+<p class="admonition-title">Deprecated since version:&ensp;1.3.0</p>
+</div>
+<dl>
+<dt><strong><code>json_params</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>Use <code>loader_kwargs</code> instead</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>list | dict</code></dt>
@@ -230,7 +319,14 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def parse_js_object(string, unicode_escape=False, json_params=None):
+<pre><code class="python">def parse_js_object(
+    string,
+    unicode_escape=False,
+    loader=json.loads,
+    loader_args=None,
+    loader_kwargs=None,
+    json_params=None,
+):
     &#34;&#34;&#34;
     Extracts first JSON object encountered in the input string
 
@@ -250,14 +346,30 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
     &gt;&gt;&gt; parse_js_object(&#39;{\\\\&#34;a\\\\&#34;: 100}&#39;, unicode_escape=True)
     {&#39;a&#39;: 100}
 
-    json_params: dict, optional
-        Allow passing down standard json.loads options
+    loader: func, optional
+        Function used to load processed input data. By default `json.loads` is used
+
+    &gt;&gt;&gt; import orjson
+    &gt;&gt;&gt; import chompjs
+    &gt;&gt;&gt; 
+    &gt;&gt;&gt; chompjs.parse_js_object(&#34;{&#39;a&#39;: 12}&#34;, loader=orjson.loads)
+    {&#39;a&#39;: 12}
+
+    loader_args: list, optional
+        Allow passing down positional arguments to loader function
+
+    loader_kwargs: dict, optional
+        Allow passing down keyword arguments to loader function
 
     &gt;&gt;&gt; parse_js_object(&#34;{&#39;a&#39;: 10.1}&#34;)
     {&#39;a&#39;: 10.1}
     &gt;&gt;&gt; import decimal
-    &gt;&gt;&gt; parse_js_object(&#34;{&#39;a&#39;: 10.1}&#34;, json_params={&#39;parse_float&#39;: decimal.Decimal})
+    &gt;&gt;&gt; parse_js_object(&#34;{&#39;a&#39;: 10.1}&#34;, loader_kwargs={&#39;parse_float&#39;: decimal.Decimal})
     {&#39;a&#39;: Decimal(&#39;10.1&#39;)}
+
+    .. deprecated:: 1.3.0
+    json_params: dict, optional
+        Use `loader_kwargs` instead
 
     Returns
     -------
@@ -283,18 +395,23 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 
     &#34;&#34;&#34;
     if not string:
-        raise ValueError(&#39;Invalid input&#39;)
+        raise ValueError(&#34;Invalid input&#34;)
+
+    loader_args, loader_kwargs = _process_loader_arguments(
+        loader_args, loader_kwargs, json_params
+    )
+
+    if json_params:
+        msg = &#34;json_params argument is deprecated, please use loader_kwargs instead&#34;
+        warnings.warn(msg, DeprecationWarning)
 
     string = _preprocess(string, unicode_escape)
-    if not json_params:
-        json_params = {}
-
     parsed_data = parse(string)
-    return json.loads(parsed_data, **json_params)</code></pre>
+    return loader(parsed_data, *loader_args, **loader_kwargs)</code></pre>
 </details>
 </dd>
 <dt id="chompjs.parse_js_objects"><code class="name flex">
-<span>def <span class="ident">parse_js_objects</span></span>(<span>string, unicode_escape=False, omitempty=False, json_params=None)</span>
+<span>def <span class="ident">parse_js_objects</span></span>(<span>string, unicode_escape=False, omitempty=False, loader=&lt;function loads&gt;, loader_args=None, loader_kwargs=None, json_params=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns a generator extracting all JSON objects encountered in the input string.
@@ -329,15 +446,34 @@ Can be used to read JSON Lines</p>
 [{'a': 12}, {'b': 13}]
 </code></pre>
 <dl>
-<dt><strong><code>json_params</code></strong> :&ensp;<code>dict</code>, optional</dt>
-<dd>Allow passing down standard json.loads flags</dd>
+<dt><strong><code>loader</code></strong> :&ensp;<code>func</code>, optional</dt>
+<dd>Function used to load processed input data. By default <code>json.loads</code> is used</dd>
+</dl>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import orjson
+&gt;&gt;&gt; import chompjs
+&gt;&gt;&gt; 
+&gt;&gt;&gt; next(chompjs.parse_js_objects(&quot;{'a': 12}&quot;, loader=orjson.loads))
+{'a': 12}
+</code></pre>
+<dl>
+<dt><strong><code>loader_args</code></strong> :&ensp;<code>list</code>, optional</dt>
+<dd>Allow passing down positional arguments to loader function</dd>
+<dt><strong><code>loader_kwargs</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>Allow passing down keyword arguments to loader function</dd>
 </dl>
 <pre><code class="language-python-repl">&gt;&gt;&gt; next(parse_js_objects(&quot;{'a': 10.1}&quot;))
 {'a': 10.1}
 &gt;&gt;&gt; import decimal
-&gt;&gt;&gt; next(parse_js_objects(&quot;{'a': 10.1}&quot;, json_params={'parse_float': decimal.Decimal}))
+&gt;&gt;&gt; next(parse_js_objects(&quot;{'a': 10.1}&quot;, loader_kwargs={'parse_float': decimal.Decimal}))
 {'a': Decimal('10.1')}
 </code></pre>
+<div class="admonition deprecated">
+<p class="admonition-title">Deprecated since version:&ensp;1.3.0</p>
+</div>
+<dl>
+<dt><strong><code>json_params</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>Use <code>loader_kwargs</code> instead</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>generator</code></dt>
@@ -347,7 +483,15 @@ Can be used to read JSON Lines</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def parse_js_objects(string, unicode_escape=False, omitempty=False, json_params=None):
+<pre><code class="python">def parse_js_objects(
+    string,
+    unicode_escape=False,
+    omitempty=False, 
+    loader=json.loads,
+    loader_args=None,
+    loader_kwargs=None,
+    json_params=None,
+):
     &#34;&#34;&#34;
     Returns a generator extracting all JSON objects encountered in the input string.
     Can be used to read JSON Lines
@@ -379,14 +523,30 @@ Can be used to read JSON Lines</p>
     &gt;&gt;&gt; list(parse_js_objects(&#34;{a: 12} {} {b: 13}&#34;, omitempty=True))
     [{&#39;a&#39;: 12}, {&#39;b&#39;: 13}]
 
-    json_params: dict, optional
-        Allow passing down standard json.loads flags
+    loader: func, optional
+        Function used to load processed input data. By default `json.loads` is used
+
+    &gt;&gt;&gt; import orjson
+    &gt;&gt;&gt; import chompjs
+    &gt;&gt;&gt; 
+    &gt;&gt;&gt; next(chompjs.parse_js_objects(&#34;{&#39;a&#39;: 12}&#34;, loader=orjson.loads))
+    {&#39;a&#39;: 12}
+
+    loader_args: list, optional
+        Allow passing down positional arguments to loader function
+
+    loader_kwargs: dict, optional
+        Allow passing down keyword arguments to loader function
 
     &gt;&gt;&gt; next(parse_js_objects(&#34;{&#39;a&#39;: 10.1}&#34;))
     {&#39;a&#39;: 10.1}
     &gt;&gt;&gt; import decimal
-    &gt;&gt;&gt; next(parse_js_objects(&#34;{&#39;a&#39;: 10.1}&#34;, json_params={&#39;parse_float&#39;: decimal.Decimal}))
+    &gt;&gt;&gt; next(parse_js_objects(&#34;{&#39;a&#39;: 10.1}&#34;, loader_kwargs={&#39;parse_float&#39;: decimal.Decimal}))
     {&#39;a&#39;: Decimal(&#39;10.1&#39;)}
+
+    .. deprecated:: 1.3.0
+    json_params: dict, optional
+        Use `loader_kwargs` instead
 
     Returns
     -------
@@ -397,15 +557,17 @@ Can be used to read JSON Lines</p>
     if not string:
         return
 
+    loader_args, loader_kwargs = _process_loader_arguments(
+        loader_args, loader_kwargs, json_params
+    )
+
     string = _preprocess(string, unicode_escape)
-    if not json_params:
-        json_params = {}
     for raw_data in parse_objects(string):
         try:
-            data = json.loads(raw_data, **json_params)
+            data = loader(raw_data, *loader_args, **loader_kwargs)
         except ValueError:
             continue
-        
+
         if not data and omitempty:
             continue
 
