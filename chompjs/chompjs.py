@@ -109,10 +109,6 @@ def parse_js_object(
         loader_args, loader_kwargs, json_params
     )
 
-    if json_params:
-        msg = "json_params argument is deprecated, please use loader_kwargs instead"
-        warnings.warn(msg, DeprecationWarning)
-
     string = _preprocess(string, unicode_escape)
     parsed_data = parse(string)
     return loader(parsed_data, *loader_args, **loader_kwargs)
