@@ -111,12 +111,22 @@ By default `chompjs` tries to start with first `{` or `[` character it founds, o
 [1, 2, 3]
 ```
 
-`json_params` argument can be used to pass options to underlying `json_loads`, such as `strict` or `object_hook`:
+Post-processed input is parsed using `json.loads` by default. A different loader such as `orsjon` can be used with `loader` argument:
+
+```python
+>>> import orjson
+>>> import chompjs
+>>> 
+>>> chompjs.parse_js_object("{'a': 12}", loader=orjson.loads)
+{'a': 12}
+```
+
+`loader_args` and `loader_kwargs` arguments can be used to pass options to underlying loader function. For example for default `json.loads` you can pass down options such as `strict` or `object_hook`:
 
 ```python
 >>> import decimal
 >>> import chompjs
->>> chompjs.parse_js_object('[23.2]', json_params={'parse_float': decimal.Decimal})
+>>> chompjs.parse_js_object('[23.2]', loader_kwargs={'parse_float': decimal.Decimal})
 [Decimal('23.2')]
 ```
 
