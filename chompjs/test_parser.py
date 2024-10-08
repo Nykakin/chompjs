@@ -236,12 +236,27 @@ class TestParser(unittest.TestCase):
         ),
         (
             """
+            /* ... */
+            /* ... */
+            /* ... */
+            /*
+                ...
+            */
+            /*
+                ...
+            */
+            [1, 2, 3]
+            """,
+            [1, 2, 3],
+        ),
+        (
+            """
             /* <![CDATA[ */
             var foo = ["<", "_", ">"];
             /* ]]> */
             """,
             ["<", "_", ">"],
-        )
+        ),
     )
     def test_comments(self, in_data, expected_data):
         result = parse_js_object(in_data)
