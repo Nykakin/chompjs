@@ -31,7 +31,7 @@ setup(
     author='Mariusz Obajtek',
     author_email='nykakin@gmail.com',
     keywords='parsing parser JavaScript json json5 webscrapping',
-    python_requires='>=3.8',
+    python_requires='>3.8',
     ext_modules=[chompjs_extension],
     classifiers=[
         "Programming Language :: Python :: 3",
