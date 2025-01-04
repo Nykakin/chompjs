@@ -13,7 +13,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 extra_compile_args = []
 extra_link_args = []
-if system() == 'Linux':
+if system() in('Linux', 'Darwin'):
     extra_compile_args = ['-Wl,-Bsymbolic-functions']
     extra_link_args = ['-Wl,-Bsymbolic-functions']
 
