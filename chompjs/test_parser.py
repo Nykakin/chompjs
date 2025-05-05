@@ -185,7 +185,7 @@ class TestParser(unittest.TestCase):
         ("[-0.0123]", [-0.0123]),
         ("[3.1E+12]", [3.1E+12]),
         ("[3.1e+12]", [3.1E+12]),
-        ("[.1e-23]", [.1e-23]),
+        ("[.1E-23]", [.1e-23]),
         ("[.1e-23]", [.1e-23]),
     )
     def test_float_numeric_values(self, in_data, expected_data):
