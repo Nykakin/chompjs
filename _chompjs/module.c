@@ -16,9 +16,11 @@ static PyObject* parse_python_object(PyObject *self, PyObject *args) {
 
     struct Lexer lexer;
     init_lexer(&lexer, string);
+    Py_BEGIN_ALLOW_THREADS 
     while(lexer.lexer_status == CAN_ADVANCE) {
         advance(&lexer);
     }
+    Py_END_ALLOW_THREADS
 
     PyObject* ret = Py_BuildValue("s#", lexer.output.data, lexer.output.index-1);
     release_lexer(&lexer);
@@ -69,9 +71,12 @@ static void json_iter_dealloc(JsonIterState* json_iter_state) {
 }
 
 static PyObject* json_iter_next(JsonIterState* json_iter_state) {
+    Py_BEGIN_ALLOW_THREADS
     while(json_iter_state->lexer.lexer_status == CAN_ADVANCE) {
         advance(&json_iter_state->lexer);
     }
+    Py_END_ALLOW_THREADS
+
     if(json_iter_state->lexer.output.index == 1) {
         return NULL;
     }
