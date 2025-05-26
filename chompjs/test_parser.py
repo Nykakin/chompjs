@@ -88,7 +88,7 @@ class TestParser(unittest.TestCase):
     def test_parse_nan(self):
         in_data = '{"A": NaN}'
         result = parse_js_object(in_data)
-        assert math.isnan(result["A"])
+        self.assertTrue(math.isnan(result["A"]))
 
     @parametrize_test(
         ("{abc: 100, dev: 200}", {'abc': 100, 'dev': 200}),

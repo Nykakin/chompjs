@@ -11,17 +11,17 @@
 * Remove trailing whitespaces for unrecognized values (#59)
 * Fix segfault on empty string (#62)
 
-1.2.3
+[1.2.3]
 * Remove trailing whitespaces from unquoted keys (#57)
 
-1.2.2
+[1.2.2]
 * Fix parsing some floating numbers as octal (#52)
 * Fix number of digits calculation (#50)
 
-1.2.1
+[1.2.1]
 * Fix compilation on Windows (#49)
 
-1.2.0
+[1.2.0]
 * Allow trailing dot at the end of numerals (#39)
 * Parse hexadecimal, binary and octal literals as numbers (#40)
 * Drop support for Python 2.7 (#44)
@@ -29,61 +29,61 @@
 * Drop jsonlines flag in parse_json_object in favor of parse_json_objects (#46)
 * Improve documentation (#47, #32)
 
-1.1.9
+[1.1.9]
 * Handle NaN in input (#37)
 
-1.1.8
+[1.1.8]
 * Fixed previous release (package couldn't be installed)
 
-1.1.7
+[1.1.7]
 * Handle unquoted properties starting with reserved JS keywords (#34)
 
-1.1.6
+[1.1.6]
 * Handle bug with parsing arrays like `["","/"]` (#33)
 
-1.1.5
+[1.1.5]
 * Correctly handle malformed quotations (#31)
 
-1.1.4
+[1.1.4]
 * Performance improvement (#19)
 * Handle numeric keys (#20)
 * Refactor error handling (#29)
 
-1.1.3
+[1.1.3]
 * Avoid an infinite loop on malformed input (#27)
 
-1.1.2
+[1.1.2]
 * Handle comments in JavaScript code (#22)
 
-1.1.1
+[1.1.1]
 * Fix installation bug (headers moved to a different dir)
 
-1.1.0
+[1.1.0]
 * Parser refactored and rewritten in order to simplify code and improve speed
 * Allow handling JavaScript functions and other strange stuff such as regexes (#16)
 * Allow passing down json.loads parameters
 * Allow handling hexadecimal, octal and binary literals (#12)
 
-1.0.17
+[1.0.17]
 * Handle memory corruption on unclosed quotations (#13)
 
-1.0.16
+[1.0.16]
 * Handle floats with leading zeros (#10)
 
-1.0.15
+[1.0.15]
 * Handle $ and _ characters at the beginning of keys (#9)
 
-1.0.14
+[1.0.14]
 * Handle "undefined" keyword in JavaScript objects (#7)
 
-1.0.13
+[1.0.13]
 * Handle escaped quotations correctly (#6)
 
-1.0.12
+[1.0.12]
 * Handle windows newlines (#5)
 
-1.0.11
+[1.0.11]
 * Handle jsonlines (#3)
 
-1.0.1
+[1.0.1]
 * Handle Unicode in keys (#2)
