@@ -374,6 +374,10 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
             case '}':
             case ']':
             case '>':
+                if(lexer->input[lexer->input_position-1] == '=') {
+                    emit(c, lexer);
+                    continue;
+                }
             case ')':
                 if(currently_quoted_with && lexer->unrecognized_nesting_depth > 0) {
                     emit(c, lexer);
