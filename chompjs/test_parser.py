@@ -116,6 +116,7 @@ class TestParser(unittest.TestCase):
         ("{abc:  name}", {'abc': "name"}),
         ("{abc: \tname}", {'abc': "name"}),
         ("{abc: \nvalue}", {'abc': "value"}),
+        ("{someProp: someArg => someFunc(someArg)}", {"someProp": "someArg => someFunc(someArg)"}),
     )
     def test_parse_strange_values(self, in_data, expected_data):
         result = parse_js_object(in_data)
