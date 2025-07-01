@@ -374,7 +374,7 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
             case '}':
             case ']':
             case '>':
-                if(lexer->input[lexer->input_position-1]=='=') {
+                if(lexer->input[lexer->input_position-1] == '=') {
                     emit(c, lexer);
                     continue;
                 }
