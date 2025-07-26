@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import warnings
-from typing import Any, Protocol, TypeVar, TYPE_CHECKING
+from typing import Any, Protocol, TypeVar, TYPE_CHECKING, Generic
 from _chompjs import parse, parse_objects # type: ignore[reportAttributeAccessIssue,attr-defined]
 
 
@@ -12,10 +12,11 @@ if TYPE_CHECKING:
 
     _T = TypeVar("_T")
     _T2 = TypeVar("_T2")
+    _T_co = TypeVar("_T_co", covariant=True)
 
-    class _JsonLoader(Protocol):
+    class _JsonLoader(Generic[_T_co], Protocol):
 
-        def __call__(self, obj: str, / , *args: Any, **kwargs: Any) -> Any: ...
+        def __call__(self, obj: str, / , *args: Any, **kwargs: Any) -> _T_co: ...
 
 
 def _preprocess(string: str, unicode_escape: bool=False) -> str:
@@ -46,11 +47,11 @@ def _process_loader_arguments(
 def parse_js_object(
     string: str,
     unicode_escape: bool=False,
-    loader: _JsonLoader=json.loads,
+    loader: _JsonLoader[_T_co]=json.loads,
     loader_args: Sequence[Any] | None=None,
     loader_kwargs: Mapping[str, Any] | None=None,
     json_params: Mapping[str, Any] | None=None,
-) -> Any:
+) -> _T_co:
     """
     Extracts first JSON object encountered in the input string
 
@@ -134,11 +135,11 @@ def parse_js_objects(
     string: str,
     unicode_escape: bool=False,
     omitempty: bool=False, 
-    loader: _JsonLoader=json.loads,
+    loader: _JsonLoader[_T_co]=json.loads,
     loader_args: Sequence[Any] | None=None,
     loader_kwargs: Mapping[str, Any] | None=None,
     json_params: Mapping[str, Any] | None=None,
-)-> Iterable[Any]:
+)-> Iterable[_T_co]:
     """
     Returns a generator extracting all JSON objects encountered in the input string.
     Can be used to read JSON Lines
