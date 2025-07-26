@@ -1,1 +1,2 @@
 graft _chompjs
+include chompjs/py.typed
