@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
 import json
 import warnings
 from typing import Any, Protocol, TypeVar, TYPE_CHECKING
-
 from _chompjs import parse, parse_objects # type: ignore[reportAttributeAccessIssue,attr-defined]
 
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping, Sequence
+
     _T = TypeVar("_T")
     _T2 = TypeVar("_T2")
-
 
     class _JsonLoader(Protocol):
 
