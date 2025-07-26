@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
 import json
 import warnings
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar, TYPE_CHECKING
 
-from _chompjs import parse, parse_objects # type: ignore[reportAttributeAccessIssue]
-
-
-_T = TypeVar("_T")
-_T2 = TypeVar("_T2")
+from _chompjs import parse, parse_objects # type: ignore[reportAttributeAccessIssue,attr-defined]
 
 
-class _JsonLoader(Protocol):
+if TYPE_CHECKING:
+    _T = TypeVar("_T")
+    _T2 = TypeVar("_T2")
 
-    def __call__(self, obj: str, / , *args: Any, **kwargs: Any) -> Any: ...
+
+    class _JsonLoader(Protocol):
+
+        def __call__(self, obj: str, / , *args: Any, **kwargs: Any) -> Any: ...
 
 
 def _preprocess(string: str, unicode_escape: bool=False) -> str:
