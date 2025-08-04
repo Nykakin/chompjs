@@ -109,10 +109,12 @@ struct State* begin(struct Lexer* lexer) {
         case '\0':;
             return &states[END_STATE];
         case '/':
-            char next_c = lexer->input[lexer->input_position+1];
-            if(next_c == '/' || next_c == '*') {
-                handle_comments(lexer);
-            }
+            {
+                char next_c = lexer->input[lexer->input_position+1];
+                if(next_c == '/' || next_c == '*') {
+                    handle_comments(lexer);
+                }
+            }                
         default:
             lexer->input_position += 1;
         }
