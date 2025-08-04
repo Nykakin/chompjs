@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import warnings
-from typing import Any, Protocol, TypeVar, TYPE_CHECKING, Generic
+from typing import Any, Protocol, TypeVar, TYPE_CHECKING
 from _chompjs import parse, parse_objects # type: ignore[reportAttributeAccessIssue,attr-defined]
 
 
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     _T2 = TypeVar("_T2")
     _T_co = TypeVar("_T_co", covariant=True)
 
-    class _JsonLoader(Generic[_T_co], Protocol):
+    class _JsonLoader(Protocol[_T_co]):
 
         def __call__(self, obj: str, / , *args: Any, **kwargs: Any) -> _T_co: ...
 
