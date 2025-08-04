@@ -1,18 +1,35 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import json
 import warnings
+from typing import Any, Protocol, TypeVar, TYPE_CHECKING
+from _chompjs import parse, parse_objects # type: ignore[reportAttributeAccessIssue,attr-defined]
 
-from _chompjs import parse, parse_objects
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping, Sequence
+
+    _T = TypeVar("_T")
+    _T2 = TypeVar("_T2")
+    _T_co = TypeVar("_T_co", covariant=True)
+
+    class _JsonLoader(Protocol[_T_co]):
+
+        def __call__(self, obj: str, / , *args: Any, **kwargs: Any) -> _T_co: ...
 
 
-def _preprocess(string, unicode_escape=False):
+def _preprocess(string: str, unicode_escape: bool=False) -> str:
     if unicode_escape:
         string = string.encode().decode("unicode_escape")
     return string
 
 
-def _process_loader_arguments(loader_args, loader_kwargs, json_params):
+def _process_loader_arguments(
+    loader_args: Sequence[_T] | None, 
+    loader_kwargs: Mapping[str, _T2] | None, 
+    json_params: Mapping[str, _T2] | None,
+) -> tuple[Sequence[_T], Mapping[str, _T2]]:
     if json_params:
         msg = "json_params argument is deprecated, please use loader_kwargs instead"
         warnings.warn(msg, DeprecationWarning)
@@ -28,13 +45,13 @@ def _process_loader_arguments(loader_args, loader_kwargs, json_params):
 
 
 def parse_js_object(
-    string,
-    unicode_escape=False,
-    loader=json.loads,
-    loader_args=None,
-    loader_kwargs=None,
-    json_params=None,
-):
+    string: str,
+    unicode_escape: bool=False,
+    loader: _JsonLoader[_T_co]=json.loads,
+    loader_args: Sequence[Any] | None=None,
+    loader_kwargs: Mapping[str, Any] | None=None,
+    json_params: Mapping[str, Any] | None=None,
+) -> _T_co:
     """
     Extracts first JSON object encountered in the input string
 
@@ -115,14 +132,14 @@ def parse_js_object(
 
 
 def parse_js_objects(
-    string,
-    unicode_escape=False,
-    omitempty=False, 
-    loader=json.loads,
-    loader_args=None,
-    loader_kwargs=None,
-    json_params=None,
-):
+    string: str,
+    unicode_escape: bool=False,
+    omitempty: bool=False, 
+    loader: _JsonLoader[_T_co]=json.loads,
+    loader_args: Sequence[Any] | None=None,
+    loader_kwargs: Mapping[str, Any] | None=None,
+    json_params: Mapping[str, Any] | None=None,
+)-> Iterable[_T_co]:
     """
     Returns a generator extracting all JSON objects encountered in the input string.
     Can be used to read JSON Lines
