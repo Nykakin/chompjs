@@ -23,6 +23,7 @@ jobs:
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
             CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
+            CIBW_ENVIRONMENT_WINDOWS: Py_GIL_DISABLED=1 # https://docs.python.org/3/howto/free-threading-extensions.html#windows
             CIBW_TEST_REQUIRES: orjson mypy
             CIBW_TEST_COMMAND: >
                 python -m unittest discover {package} &&
