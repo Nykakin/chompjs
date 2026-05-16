@@ -1,3 +1,6 @@
+[1.4.1]
+* Support Python 3.14 (#78)
+
 [1.4.0]
 * Handle arrow functions (#72)
 * Skip initial comments in source (#65)
