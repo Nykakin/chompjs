@@ -216,5 +216,5 @@ Pull requests are welcome.
 To run unittests
 
 ```
-$ tox
+$ python -m unittest discover
 ```
