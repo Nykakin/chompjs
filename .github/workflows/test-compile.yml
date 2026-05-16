@@ -25,7 +25,9 @@ jobs:
             CIBW_TEST_REQUIRES: orjson mypy
             CIBW_TEST_COMMAND: >
                 python -m unittest discover {package} &&
-                python -m doctest {package}/chompjs.py &&
+                python -m doctest {package}/chompjs.py --verbose &&
+                ls {package} &&
+                ls {package}/chompjs && 
                 mypy {package}/chompjs.py
 
       - uses: actions/upload-artifact@v6
