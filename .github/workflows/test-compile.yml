@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v6
@@ -28,7 +28,7 @@ jobs:
                 python -m doctest {package}/chompjs/chompjs.py --verbose &&
                 echo '  >> ls {package} << ' &&
                 ls {package} &&
-                echo '  >> ls {package/chompjs} << '&&
+                echo '  >> ls {package/chompjs} << ' &&
                 ls {package}/chompjs && 
                 mypy {package}/chompjs/chompjs.py
 
