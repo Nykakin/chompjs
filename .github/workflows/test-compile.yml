@@ -24,7 +24,7 @@ jobs:
         env:
             CIBW_TEST_REQUIRES: orjson mypy
             CIBW_TEST_COMMAND: >
-                python -m unittest discover ./{package} &&
+                python -m unittest discover {package} &&
                 python -m doctest {package}/chompjs.py &&
                 mypy {package}/chompjs.py
 
