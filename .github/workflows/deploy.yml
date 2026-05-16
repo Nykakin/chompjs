@@ -22,11 +22,12 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
+            CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
             CIBW_TEST_REQUIRES: orjson mypy
             CIBW_TEST_COMMAND: >
                 python -m unittest discover {package} &&
-                python -m doctest {package}/chompjs.py &&
-                mypy {package}/chompjs.py
+                python -m doctest {package}/chompjs/chompjs.py --verbose &&
+                mypy {package}/chompjs/chompjs.py
 
       - uses: actions/upload-artifact@v6
         with:

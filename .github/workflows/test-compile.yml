@@ -9,7 +9,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v6
@@ -22,14 +22,11 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
+            CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
             CIBW_TEST_REQUIRES: orjson mypy
             CIBW_TEST_COMMAND: >
                 python -m unittest discover {package} &&
                 python -m doctest {package}/chompjs/chompjs.py --verbose &&
-                echo '  >> ls {package} << ' &&
-                ls {package} &&
-                echo '  >> ls {package/chompjs} << ' &&
-                ls {package}/chompjs && 
                 mypy {package}/chompjs/chompjs.py
 
       - uses: actions/upload-artifact@v6
