@@ -1,3 +1,5 @@
+name: compile
+
 on: workflow_call
 
 jobs:

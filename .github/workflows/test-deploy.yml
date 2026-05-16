@@ -8,7 +8,7 @@ jobs:
     uses: ./.github/workflows/compile.yml
 
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [compile]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
