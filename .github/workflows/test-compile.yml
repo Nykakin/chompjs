@@ -22,6 +22,7 @@ jobs:
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
         env:
+            CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
             CIBW_TEST_REQUIRES: orjson
             CIBW_TEST_COMMAND: >
                 python -m unittest discover {package} &&
