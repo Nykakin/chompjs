@@ -21,7 +21,7 @@ jobs:
         env:
             CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
             CIBW_TEST_REQUIRES: orjson
-            CIBW_TEST_SKIP: "cp314t-win32" # failing to compile orjson for this configuration
+            CIBW_TEST_SKIP: "cp314t-win*" # failing to compile orjson for this configuration
             CIBW_TEST_COMMAND: >
                 python -m unittest discover {package} &&
                 python -m doctest {package}/chompjs/chompjs.py --verbose
