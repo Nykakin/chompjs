@@ -1,5 +1,5 @@
 /*
- * Copyright 2020-2025 Mariusz Obajtek. All rights reserved.
+ * Copyright 2020-2026 Mariusz Obajtek. All rights reserved.
  * License: https://github.com/Nykakin/chompjs/blob/master/LICENSE
  */
 
@@ -25,84 +25,84 @@ enum StateIndex {
     BEGIN_STATE, JSON_STATE, VALUE_STATE, END_STATE, ERROR_STATE
 };
 
-void advance(struct Lexer* lexer) {
-    lexer->state = lexer->state->change(lexer);
+void advance(struct Parser* parser) {
+    parser->state = parser->state->change(parser);
 }
 
-char next_char(struct Lexer* lexer) {
+char next_char(struct Parser* parser) {
     while(1) {
-        if(isspace(lexer->input[lexer->input_position])) {
-            lexer->input_position += 1;
+        if(isspace(parser->input[parser->input_position])) {
+            parser->input_position += 1;
             continue;
         }
-        return lexer->input[lexer->input_position];
+        return parser->input[parser->input_position];
     }
     return '\0';
 }
 
-char last_char(struct Lexer* lexer) {
-    return top(&lexer->output);
+char last_char(struct Parser* parser) {
+    return top(&parser->output);
 }
 
-void emit(char c, struct Lexer* lexer) {
-    push(&lexer->output, c);
-    lexer->input_position += 1;   
+void emit(char c, struct Parser* parser) {
+    push(&parser->output, c);
+    parser->input_position += 1;   
 }
 
-void emit_in_place(char c, struct Lexer* lexer) {
-    push(&lexer->output, c);
+void emit_in_place(char c, struct Parser* parser) {
+    push(&parser->output, c);
 }
 
-void unemit(struct Lexer* lexer) {
-    pop(&lexer->output);
+void unemit(struct Parser* parser) {
+    pop(&parser->output);
 }
 
-void emit_string(const char *s, size_t size, struct Lexer* lexer) {
-    push_string(&lexer->output, s, size);
-    lexer->input_position += size;   
+void emit_string(const char *s, size_t size, struct Parser* parser) {
+    push_string(&parser->output, s, size);
+    parser->input_position += size;   
 }
 
-void emit_string_in_place(const char *s, size_t size, struct Lexer* lexer) {
-    push_string(&lexer->output, s, size);
+void emit_string_in_place(const char *s, size_t size, struct Parser* parser) {
+    push_string(&parser->output, s, size);
 }
 
-void emit_number_in_place(long value, struct Lexer* lexer) {
-    push_number(&lexer->output, value);
+void emit_number_in_place(long value, struct Parser* parser) {
+    push_number(&parser->output, value);
 }
 
-void init_lexer(struct Lexer* lexer, const char* string) {
-    lexer->input = string;
+void init_parser(struct Parser* parser, const char* string) {
+    parser->input = string;
     // allocate in advance more memory for output than for input because we might need
     // to add extra characters
     // for example `{a: undefined}` will be translated as `{"a": "undefined"}`
-    lexer->output_size = 2 * strlen(string) + 1;
-    init_char_buffer(&lexer->output, lexer->output_size);
-    lexer->input_position = 0;
-    init_char_buffer(&lexer->nesting_depth, INITIAL_NESTING_DEPTH);
-    lexer->unrecognized_nesting_depth = 0;
-    lexer->lexer_status = CAN_ADVANCE;
-    lexer->state = &states[BEGIN_STATE];
-    lexer->is_key = false;
+    parser->output_size = 2 * strlen(string) + 1;
+    init_char_buffer(&parser->output, parser->output_size);
+    parser->input_position = 0;
+    init_char_buffer(&parser->nesting_depth, INITIAL_NESTING_DEPTH);
+    parser->unrecognized_nesting_depth = 0;
+    parser->parser_status = CAN_ADVANCE;
+    parser->state = &states[BEGIN_STATE];
+    parser->is_key = false;
 }
 
-void reset_lexer_output(struct Lexer* lexer) {
-    clear(&lexer->output);
-    lexer->lexer_status = CAN_ADVANCE;
-    lexer->state = &states[BEGIN_STATE];
-    lexer->is_key = false;
-    lexer->input_position -= 1;
+void reset_parser_output(struct Parser* parser) {
+    clear(&parser->output);
+    parser->parser_status = CAN_ADVANCE;
+    parser->state = &states[BEGIN_STATE];
+    parser->is_key = false;
+    parser->input_position -= 1;
 }
 
-void release_lexer(struct Lexer* lexer) {
-    release_char_buffer(&lexer->output);
+void release_parser(struct Parser* parser) {
+    release_char_buffer(&parser->output);
 }
 
-struct State* begin(struct Lexer* lexer) {
+struct State* begin(struct Parser* parser) {
     // Ignoring characters until either '{' or '[' appears
     for(;;) {
-        switch(next_char(lexer)) {
+        switch(next_char(parser)) {
         case '{':
-            lexer->is_key = true;
+            parser->is_key = true;
         case '[':;
             return &states[JSON_STATE];
         break;
@@ -110,65 +110,65 @@ struct State* begin(struct Lexer* lexer) {
             return &states[END_STATE];
         case '/':
             {
-                char next_c = lexer->input[lexer->input_position+1];
+                char next_c = parser->input[parser->input_position+1];
                 if(next_c == '/' || next_c == '*') {
-                    handle_comments(lexer);
+                    handle_comments(parser);
                 }
             }                
         default:
-            lexer->input_position += 1;
+            parser->input_position += 1;
         }
     }
     return &states[ERROR_STATE];
 }
 
-struct State* json(struct Lexer* lexer) {
+struct State* json(struct Parser* parser) {
     for(;;) {
-        switch(next_char(lexer)) {
+        switch(next_char(parser)) {
         case '{':
-            push(&lexer->nesting_depth, '{');
-            lexer->is_key = true;
-            emit('{', lexer);
+            push(&parser->nesting_depth, '{');
+            parser->is_key = true;
+            emit('{', parser);
         break;
         case '[':
-            push(&lexer->nesting_depth, '[');
-            emit('[', lexer);
+            push(&parser->nesting_depth, '[');
+            emit('[', parser);
         break;
         case '}':
-            if(last_char(lexer) == ',') {
-                unemit(lexer);
+            if(last_char(parser) == ',') {
+                unemit(parser);
             }
-            pop(&lexer->nesting_depth);
-            lexer->is_key = top(&lexer->nesting_depth) == '{';
-            emit('}', lexer);
-            if(size(&lexer->nesting_depth) <= 0) {
+            pop(&parser->nesting_depth);
+            parser->is_key = top(&parser->nesting_depth) == '{';
+            emit('}', parser);
+            if(size(&parser->nesting_depth) <= 0) {
                 return &states[END_STATE];
             }
         break;
         case ']':
-            if(last_char(lexer) == ',') {
-                unemit(lexer);
+            if(last_char(parser) == ',') {
+                unemit(parser);
             }
-            pop(&lexer->nesting_depth);
-            lexer->is_key = top(&lexer->nesting_depth) == '{';
-            emit(']', lexer);
-            if(size(&lexer->nesting_depth) <= 0) {
+            pop(&parser->nesting_depth);
+            parser->is_key = top(&parser->nesting_depth) == '{';
+            emit(']', parser);
+            if(size(&parser->nesting_depth) <= 0) {
                 return &states[END_STATE];
             }
         break;
         case ':':
-            lexer->is_key = false;
-            emit(':', lexer);
+            parser->is_key = false;
+            emit(':', parser);
         break;
         case ',':
-            emit(',', lexer);
-            lexer->is_key = top(&lexer->nesting_depth) == '{';
+            emit(',', parser);
+            parser->is_key = top(&parser->nesting_depth) == '{';
         break;
 
         case '/':;
-            char next_c = lexer->input[lexer->input_position+1];
+            char next_c = parser->input[parser->input_position+1];
             if(next_c == '/' || next_c == '*') {
-                handle_comments(lexer);
+                handle_comments(parser);
             } else {
                 return &states[VALUE_STATE];
             }
@@ -189,71 +189,71 @@ struct State* json(struct Lexer* lexer) {
     return &states[ERROR_STATE];
 }
 
-struct State* _handle_string(struct Lexer* lexer, const char* string, size_t length) {
-    char next_char = lexer->input[lexer->input_position+length+1];
+struct State* _handle_string(struct Parser* parser, const char* string, size_t length) {
+    char next_char = parser->input[parser->input_position+length+1];
     if(next_char == '_' || isalnum(next_char)) {
-        return handle_unrecognized(lexer);
+        return handle_unrecognized(parser);
     }
-    emit_string(string, length, lexer);
+    emit_string(string, length, parser);
     return &states[JSON_STATE];
 }
 
-struct State* value(struct Lexer* lexer) {
-    char c = next_char(lexer);
-    const char* position = lexer->input + lexer->input_position;
+struct State* value(struct Parser* parser) {
+    char c = next_char(parser);
+    const char* position = parser->input + parser->input_position;
 
     if(c == '"' || c == '\'' || c == '`') {
-        return handle_quoted(lexer);
+        return handle_quoted(parser);
     } else if(isdigit(c) || c == '.' || c == '-') {
-        if(lexer->is_key) {
-            return handle_unrecognized(lexer);
+        if(parser->is_key) {
+            return handle_unrecognized(parser);
         } else {
-            return handle_numeric(lexer);
+            return handle_numeric(parser);
         }
     } else if(strncmp(position, "true", 4) == 0) {
-        return _handle_string(lexer, "true", 4);
+        return _handle_string(parser, "true", 4);
     } else if(strncmp(position, "false", 5) == 0) {
-        return _handle_string(lexer, "false", 5);
+        return _handle_string(parser, "false", 5);
     } else if(strncmp(position, "null", 4) == 0) {
-        return _handle_string(lexer, "null", 4);
+        return _handle_string(parser, "null", 4);
     } else if(c == ']' || c == '}' || c == '[' || c == '{') {
         return &states[JSON_STATE];
     } else if(strncmp(position, "NaN", 3) == 0) {
-        return _handle_string(lexer, "NaN", 3);
+        return _handle_string(parser, "NaN", 3);
     } else {
-        return handle_unrecognized(lexer);
+        return handle_unrecognized(parser);
     }
 
     return &states[JSON_STATE];
 }
 
-struct State* end(struct Lexer* lexer) {
-    emit('\0', lexer);
-    lexer->lexer_status = FINISHED;
-    return lexer->state;
+struct State* end(struct Parser* parser) {
+    emit('\0', parser);
+    parser->parser_status = FINISHED;
+    return parser->state;
 }
 
-struct State* error(struct Lexer* lexer) {
-    emit('\0', lexer);
-    lexer->lexer_status = ERROR;
-    return lexer->state;
+struct State* error(struct Parser* parser) {
+    emit('\0', parser);
+    parser->parser_status = ERROR;
+    return parser->state;
 }
 
-struct State* handle_quoted(struct Lexer* lexer) {
-    char current_quotation = next_char(lexer);
-    emit('"', lexer);
+struct State* handle_quoted(struct Parser* parser) {
+    char current_quotation = next_char(parser);
+    emit('"', parser);
 
     for(;;) {
-        char c = lexer->input[lexer->input_position];
+        char c = parser->input[parser->input_position];
         // handle escape sequences such as \\ and \'
         if(c == '\\') {
-            char escaped = lexer->input[lexer->input_position+1];
+            char escaped = parser->input[parser->input_position+1];
             if(escaped == '\'') {
-                emit('\'', lexer);
-                lexer->input_position += 1;
+                emit('\'', parser);
+                parser->input_position += 1;
             } else {
-                emit('\\', lexer);
-                emit(escaped, lexer);   
+                emit('\\', parser);
+                emit(escaped, parser);   
             }
             continue;
         }
@@ -263,50 +263,50 @@ struct State* handle_quoted(struct Lexer* lexer) {
         }
         // if we're closing the quotations, we're done with the string
         if(c == current_quotation) {
-            emit('"', lexer);
+            emit('"', parser);
             return &states[JSON_STATE];
         }
         // otherwise, emit character
         if(c == '"') {
-            emit_string_in_place("\\\"", 2, lexer);
-            lexer->input_position += 1;
+            emit_string_in_place("\\\"", 2, parser);
+            parser->input_position += 1;
         } else {
-            emit(c, lexer);
+            emit(c, parser);
         }
     }
             
     return &states[ERROR_STATE];
 }
 
-struct State* handle_numeric(struct Lexer* lexer) {
-    char c = next_char(lexer);
+struct State* handle_numeric(struct Parser* parser) {
+    char c = next_char(parser);
     if(c >= 49 && c <= 57) { // 1-9 range
-        return handle_numeric_standard_base(lexer);
+        return handle_numeric_standard_base(parser);
     } else if(c == '.') {
-        emit_in_place('0', lexer);
-        emit('.', lexer);
-        return handle_numeric_standard_base(lexer);
+        emit_in_place('0', parser);
+        emit('.', parser);
+        return handle_numeric_standard_base(parser);
     } else if(c == '-') {
-        emit('-', lexer);
-        return handle_numeric(lexer);
+        emit('-', parser);
+        return handle_numeric(parser);
     } else if(c == '0') {
-        char nc = tolower(lexer->input[lexer->input_position+1]);
+        char nc = tolower(parser->input[parser->input_position+1]);
         if(nc == '.') {
-            emit('0', lexer);
-            emit('.', lexer);
-            return handle_numeric_standard_base(lexer);
+            emit('0', parser);
+            emit('.', parser);
+            return handle_numeric_standard_base(parser);
         } else if(nc == 'x' || nc == 'X') {
-            return handle_numeric_non_standard_base(lexer, 16);
+            return handle_numeric_non_standard_base(parser, 16);
         } else if(nc == 'o' || nc == 'O') {
-            lexer->input_position += 2;
-            return handle_numeric_non_standard_base(lexer, 8);
+            parser->input_position += 2;
+            return handle_numeric_non_standard_base(parser, 8);
         } else if(isdigit(nc)) {
-            return handle_numeric_non_standard_base(lexer, 8);
+            return handle_numeric_non_standard_base(parser, 8);
         } else if(nc == 'b' || nc == 'B') {
-            lexer->input_position += 2;
-            return handle_numeric_non_standard_base(lexer, 2);
+            parser->input_position += 2;
+            return handle_numeric_non_standard_base(parser, 2);
         } else {
-            emit('0', lexer);
+            emit('0', parser);
             return &states[JSON_STATE];
         }
     } else {
@@ -315,52 +315,52 @@ struct State* handle_numeric(struct Lexer* lexer) {
     return &states[JSON_STATE];
 }
 
-struct State* handle_numeric_standard_base(struct Lexer* lexer) {
-    char c = next_char(lexer);
+struct State* handle_numeric_standard_base(struct Parser* parser) {
+    char c = next_char(parser);
     do {
         if(c != '_') {
-            emit(c, lexer);
+            emit(c, parser);
         } else {
-            lexer->input_position += 1;
+            parser->input_position += 1;
         }
-        c = tolower(lexer->input[lexer->input_position]);
+        c = tolower(parser->input[parser->input_position]);
     } while(isdigit(c) || c == '.' || c == 'e' || c == 'E' || c == '+' || c =='-' || c == '_');
-    if(last_char(lexer) == '.') {
-        emit_in_place('0', lexer);
+    if(last_char(parser) == '.') {
+        emit_in_place('0', parser);
     }
     return &states[JSON_STATE];
 }
 
-struct State* handle_numeric_non_standard_base(struct Lexer* lexer, int base) {
+struct State* handle_numeric_non_standard_base(struct Parser* parser, int base) {
     char* end;
-    long n = strtol(lexer->input + lexer->input_position, &end, base);
-    emit_number_in_place(n, lexer);
-    lexer->input_position = end - lexer->input;
+    long n = strtol(parser->input + parser->input_position, &end, base);
+    emit_number_in_place(n, parser);
+    parser->input_position = end - parser->input;
     return &states[JSON_STATE];
 }
 
-struct State* handle_unrecognized(struct Lexer* lexer) {
-    emit_in_place('"', lexer);
+struct State* handle_unrecognized(struct Parser* parser) {
+    emit_in_place('"', parser);
     char currently_quoted_with = '\0';
 
-    lexer->unrecognized_nesting_depth = 0;
+    parser->unrecognized_nesting_depth = 0;
     do {
-        char c = lexer->input[lexer->input_position];
+        char c = parser->input[parser->input_position];
 
         switch(c) {
             case '\\':
-                emit_in_place('\\', lexer);
-                emit('\\', lexer);
+                emit_in_place('\\', parser);
+                emit('\\', parser);
             break;
 
             case '\'':
             case '"':
             case '`':
                 if(c == '"') {
-                    emit_in_place('\\', lexer);
-                    emit('"', lexer);
+                    emit_in_place('\\', parser);
+                    emit('"', parser);
                 } else {
-                    emit(c, lexer);
+                    emit(c, parser);
                 }
 
                 if(!currently_quoted_with) {
@@ -374,76 +374,76 @@ struct State* handle_unrecognized(struct Lexer* lexer) {
             case '[':
             case '<':
             case '(':
-                emit(c, lexer);
-                lexer->unrecognized_nesting_depth += 1;
+                emit(c, parser);
+                parser->unrecognized_nesting_depth += 1;
             break;
 
             case '}':
             case ']':
             case '>':
-                if(lexer->input[lexer->input_position-1] == '=') {
-                    emit(c, lexer);
+                if(parser->input[parser->input_position-1] == '=') {
+                    emit(c, parser);
                     continue;
                 }
             case ')':
-                if(currently_quoted_with && lexer->unrecognized_nesting_depth > 0) {
-                    emit(c, lexer);
-                } else if(lexer->unrecognized_nesting_depth > 0) {
-                    emit(c, lexer);
-                    lexer->unrecognized_nesting_depth -= 1;
+                if(currently_quoted_with && parser->unrecognized_nesting_depth > 0) {
+                    emit(c, parser);
+                } else if(parser->unrecognized_nesting_depth > 0) {
+                    emit(c, parser);
+                    parser->unrecognized_nesting_depth -= 1;
                 } else {
                     // remove trailing whitespaces after value
-                    while(isspace(last_char(lexer))) {
-                        pop(&lexer->output);
+                    while(isspace(last_char(parser))) {
+                        pop(&parser->output);
                     }
-                    emit_in_place('"', lexer);
+                    emit_in_place('"', parser);
                     return &states[JSON_STATE];
                 }
             break;
 
             case ',':
             case ':':
-                if(!currently_quoted_with && lexer->unrecognized_nesting_depth <= 0) {
+                if(!currently_quoted_with && parser->unrecognized_nesting_depth <= 0) {
                     // remove trailing whitespaces after key
-                    while(isspace(last_char(lexer))) {
-                        pop(&lexer->output);
+                    while(isspace(last_char(parser))) {
+                        pop(&parser->output);
                     }
-                    emit_in_place('"', lexer);
+                    emit_in_place('"', parser);
                     return &states[JSON_STATE];
                 } else {
-                    emit(c, lexer);
+                    emit(c, parser);
                 }
             break;
 
             default:
-                emit(c, lexer);
+                emit(c, parser);
         }
-    } while (lexer->input[lexer->input_position] != '\0');
+    } while (parser->input[parser->input_position] != '\0');
 
     return &states[ERROR_STATE];
 }
 
-void handle_comments(struct Lexer* lexer) {
+void handle_comments(struct Parser* parser) {
     char c, next_c;
 
-    lexer->input_position += 1;
-    if(lexer->input[lexer->input_position] == '/' ) {
+    parser->input_position += 1;
+    if(parser->input[parser->input_position] == '/' ) {
         for(;;) {
-            lexer->input_position+=1;
-            c = lexer->input[lexer->input_position];
+            parser->input_position+=1;
+            c = parser->input[parser->input_position];
             if((c == '\0') || (c == '\n')) {
                 break;
             }
         }
-    } else if(lexer->input[lexer->input_position] == '*') {
+    } else if(parser->input[parser->input_position] == '*') {
         for(;;) {
-            lexer->input_position+=1;
-            c = lexer->input[lexer->input_position];
-            next_c = lexer->input[lexer->input_position+1];
+            parser->input_position+=1;
+            c = parser->input[parser->input_position];
+            next_c = parser->input[parser->input_position+1];
             if((c == '\0') || (c == '*' && next_c == '/')) {
                 break;
             }
         }
-        lexer->input_position+=2;
+        parser->input_position+=2;
     }
 }
