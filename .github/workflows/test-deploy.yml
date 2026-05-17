@@ -19,8 +19,8 @@ jobs:
           pattern: chompjs-*
           path: dist
           merge-multiple: true
-          skip-existing: true
 
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
