@@ -1,5 +1,6 @@
 [1.4.1]
 * Support building wheels for Python 3.14 (#78)
+* Fix deployment issues (#79)
 
 [1.4.0]
 * Handle arrow functions (#72)
