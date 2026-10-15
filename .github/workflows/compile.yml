@@ -13,19 +13,16 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
-
-      - name: Install cibuildwheel
-
-        run: python -m pip install cibuildwheel==4.0.0rc1
+      - uses: astral-sh/setup-uv@v7
 
       - name: Build wheels
-        run: python -m cibuildwheel --output-dir wheelhouse
+        run: uvx --from cibuildwheel cibuildwheel --output-dir wheelhouse
         env:
             CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
-            CIBW_TEST_REQUIRES: orjson
+            CIBW_TEST_REQUIRES: orjson pytest
             CIBW_TEST_SKIP: "cp314t-win*" # failing to compile orjson for this configuration
             CIBW_TEST_COMMAND: >
-                python -m unittest discover {package} &&
+                python -m pytest {package} &&
                 python -m doctest {package}/chompjs/chompjs.py --verbose
 
       - uses: actions/upload-artifact@v6
@@ -40,7 +37,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build sdist
-        run: pipx run build --sdist
+        run: uvx build --sdist
 
       - uses: actions/upload-artifact@v6
         with:

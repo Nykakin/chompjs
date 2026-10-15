@@ -39,15 +39,16 @@ In web scraping, you sometimes need to transform Javascript objects embedded in 
 or build from source:
 
 ```bash
-$ git clone https://github.com/Nykakin/chompjs
-$ cd chompjs
-$ python setup.py build
-$ python setup.py install
+git clone https://github.com/Nykakin/chompjs
+cd chompjs
+python setup.py build
+python setup.py install
 ```
 
 ## Features
 
 There are two functions available:
+
 * `parse_js_object` - try reading first encountered JSON-like object. Raises `ValueError` on failure
 * `parse_js_objects` - returns a generator yielding all encountered JSON-like objects. Can be used to read [JSON Lines](https://jsonlines.org/). Does not raise on invalid input.
 
@@ -155,6 +156,7 @@ Standard library function `json.loads` is usually sufficient to extract this dat
 {u'foo': u'bar'}
 
 ```
+
 The problem is that not all valid JavaScript objects are also valid JSONs. For example all those strings are valid JavaScript objects but not valid JSONs:
 
 * `"{'a': 'b'}"` is not a valid JSON because it uses `'` character to quote
@@ -183,6 +185,7 @@ Traceback (most recent call last):
 json.decoder.JSONDecodeError: Expecting value: line 1 column 7 (char 6)
 
 ```
+
 `chompjs` library was designed to bypass this limitation, and it allows to scrape such JavaScript objects into proper Python dictionaries:
 
 ```python
@@ -211,10 +214,11 @@ Internally `chompjs` use a parser written in C to iterate over raw string, fixin
 ```
 
 # Development
-Pull requests are welcome. 
 
-To run unittests
+Pull requests are welcome.
+
+To run tests
 
 ```
-$ python -m unittest discover
+uv run pytest
 ```
