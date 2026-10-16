@@ -41,8 +41,7 @@ or build from source:
 ```bash
 git clone https://github.com/Nykakin/chompjs
 cd chompjs
-python setup.py build
-python setup.py install
+python -m pip install .
 ```
 
 ## Features

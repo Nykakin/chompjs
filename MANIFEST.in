@@ -1,3 +1,2 @@
 graft _chompjs
-include build_backend.py
 include chompjs/py.typed

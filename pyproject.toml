@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -41,27 +41,19 @@ dev = [
 include-package-data = true
 packages = ["chompjs"]
 
-[[tool.setuptools.ext-modules]]
-name = "_chompjs"
-sources = [
-    "_chompjs/module.c",
-    "_chompjs/parser.c",
-    "_chompjs/buffer.c",
-]
-
 [tool.setuptools.package-data]
 chompjs = ["py.typed"]
 
 [tool.pytest.ini_options]
-addopts = ["--ignore=build_backend.py", "--doctest-modules"]
+addopts = ["--doctest-modules"]
 
 [tool.cibuildwheel]
 enable = ["pypy"]
 environment = { ORJSON_BUILD_FREETHREADED = "1" }
-test-requires = ["orjson"]
+test-requires = ["orjson", "pytest"]
 test-command = [
-    "python -m unittest discover {package}",
-    "python -m doctest {package}/chompjs/chompjs.py --verbose",
+    "python -m pytest {project}/tests",
+    "python -m doctest {project}/chompjs/chompjs.py --verbose",
 ]
 test-skip = "cp314t-win*"  # orjson fails to compile for this configuration
 
@@ -72,5 +64,5 @@ archs = ["arm64", "x86_64"]
 [[tool.cibuildwheel.overrides]]
 # orjson has no PyPy wheels, so the doctests, which use it, cannot run.
 select = "pp*"
-test-requires = []
-test-command = "python -m unittest discover {package}"
+test-requires = ["pytest"]
+test-command = "python -m pytest {project}/tests"
