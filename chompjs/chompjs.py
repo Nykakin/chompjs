@@ -72,10 +72,10 @@ def parse_js_object(
     loader: func, optional
         Function used to load processed input data. By default `json.loads` is used
 
-    >>> import orjson
+    >>> import ast
     >>> import chompjs
-    >>>
-    >>> chompjs.parse_js_object("{'a': 12}", loader=orjson.loads)
+    >>> 
+    >>> chompjs.parse_js_object("{'a': 12}", loader=ast.literal_eval)
     {'a': 12}
 
     loader_args: list, optional
@@ -172,10 +172,10 @@ def parse_js_objects(
     loader: func, optional
         Function used to load processed input data. By default `json.loads` is used
 
-    >>> import orjson
+    >>> import ast
     >>> import chompjs
-    >>>
-    >>> next(chompjs.parse_js_objects("{'a': 12}", loader=orjson.loads))
+    >>> 
+    >>> next(chompjs.parse_js_objects("{'a': 12}", loader=ast.literal_eval))
     {'a': 12}
 
     loader_args: list, optional
