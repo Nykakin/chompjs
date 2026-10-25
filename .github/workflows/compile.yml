@@ -8,7 +8,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - windows-latest
+          - windows-11-arm
+          - macos-latest
 
     steps:
       - uses: actions/checkout@v6
@@ -20,13 +25,6 @@ jobs:
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
-        env:
-            CIBW_ENVIRONMENT: ORJSON_BUILD_FREETHREADED=1
-            CIBW_TEST_REQUIRES: orjson
-            CIBW_TEST_SKIP: "cp314t-win*" # failing to compile orjson for this configuration
-            CIBW_TEST_COMMAND: >
-                python -m unittest discover {package} &&
-                python -m doctest {package}/chompjs/chompjs.py --verbose
 
       - uses: actions/upload-artifact@v6
         with:

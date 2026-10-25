@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+enable = ["pypy"]
+environment = { ORJSON_BUILD_FREETHREADED = "1" }
+test-requires = ["orjson"]
+test-command = [
+    "python -m unittest discover {package}",
+    "python -m doctest {package}/chompjs/chompjs.py --verbose",
+]
+test-skip = "cp314t-win*"  # orjson fails to compile for this configuration
+
+[tool.cibuildwheel.macos]
+# The runner is arm64; x86_64 wheels are cross-compiled, hence untested.
+archs = ["arm64", "x86_64"]
+
+[[tool.cibuildwheel.overrides]]
+# orjson has no PyPy wheels, so the doctests, which use it, cannot run.
+select = "pp*"
+test-requires = []
+test-command = "python -m unittest discover {package}"
