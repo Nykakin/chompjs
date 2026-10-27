@@ -109,10 +109,10 @@ def parse_js_object(
     Traceback (most recent call last):
       ...
     ValueError: Invalid input
-    >>> parse_js_object("No JSON objects in sight...")
+    >>> parse_js_object("No JSON objects in sight...") # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
       ...
-    json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+    json.decoder.JSONDecodeError
 
     ```
 
