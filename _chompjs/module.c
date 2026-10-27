@@ -157,7 +157,6 @@ static struct PyModuleDef parser_definition = {
 };
 
 PyMODINIT_FUNC PyInit__chompjs(void) {
-    Py_Initialize();
     PyObject* module = PyModule_Create(&parser_definition);
     if (!module) {
         return NULL;

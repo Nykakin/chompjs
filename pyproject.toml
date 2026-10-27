@@ -1,12 +1,58 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "chompjs"
+version = "1.4.1"
+description = "Parsing JavaScript objects into Python dictionaries"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Mariusz Obajtek", email = "nykakin@gmail.com" },
+]
+keywords = ["parsing", "parser", "JavaScript", "json", "json5", "webscrapping"]
+license = "MIT"
+license-files = ["LICENSE"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: JavaScript",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Text Processing :: General",
+    "Topic :: Text Processing :: Linguistic",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+]
+
+[project.urls]
+Homepage = "https://github.com/Nykakin/chompjs"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "orjson==3.13.0",
+    "pytest>=9.1.1",
+]
+
+[tool.setuptools]
+include-package-data = true
+packages = ["chompjs"]
+
+[tool.setuptools.package-data]
+chompjs = ["py.typed"]
+
+[tool.pytest.ini_options]
+addopts = ["--doctest-modules"]
 
 [tool.cibuildwheel]
 enable = ["pypy"]
+test-requires = ["pytest"]
 test-command = [
-    "python -m unittest discover {package}",
-    "python -m doctest {package}/chompjs/chompjs.py --verbose",
+    "python -m pytest {project}/tests",
+    "python -m doctest {project}/chompjs/chompjs.py --verbose",
 ]
 
 [tool.cibuildwheel.macos]
