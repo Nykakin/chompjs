@@ -443,3 +443,53 @@ def test_parse_json_objects(in_data, expected_data):
 def test_parse_json_objects_without_empty(in_data, expected_data):
     result = list(parse_js_objects(in_data, omitempty=True))
     assert result == expected_data
+
+
+@pytest.mark.parametrize(
+    "in_data, unicode_escape",
+    [
+        ("\0", False),
+        ("{}\0[]", False),
+        ("\ud83f", False),
+        ("['\udfff']", False),
+        ("\ud83f", True),
+        ("\\", True),
+        (r"\x", True),
+        (r"\u123", True),
+        (r"\0", True),
+        (r"\ud83f", True),
+    ],
+)
+def test_parse_json_objects_invalid_encoding(in_data, unicode_escape):
+    assert list(parse_js_objects(in_data, unicode_escape=unicode_escape)) == []
+    with pytest.raises(ValueError):
+        parse_js_object(in_data, unicode_escape=unicode_escape)
+
+
+@pytest.mark.parametrize("in_data", ["[{]", "[", "{", "[1,", '{"a":'])
+def test_parse_json_objects_truncated_value(in_data):
+    assert list(parse_js_objects(in_data)) == []
+    assert list(parse_js_objects("[1]" + in_data)) == [[1]]
+    with pytest.raises(ValueError, match=rf"near character {len(in_data)}$"):
+        parse_js_object(in_data)
+
+
+def test_parse_json_objects_loader_errors():
+    def loader(raw_data):
+        if raw_data == "[1]":
+            raise ValueError("skip this object")
+        if raw_data == "[3]":
+            raise RuntimeError("loader failure")
+        return raw_data
+
+    objects = parse_js_objects("[1][2][3]", loader=loader)
+    assert next(objects) == "[2]"
+    with pytest.raises(RuntimeError, match="loader failure"):
+        next(objects)
+
+
+def test_parse_json_objects_unicode_escape_valid():
+    assert list(parse_js_objects(r"{\"a\": 1} [2]", unicode_escape=True)) == [
+        {"a": 1},
+        [2],
+    ]
