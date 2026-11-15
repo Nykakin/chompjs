@@ -207,8 +207,14 @@ def parse_js_objects(
         loader_args, loader_kwargs, json_params
     )
 
-    string = _preprocess(string, unicode_escape)
-    for raw_data in parse_objects(string):
+    try:
+        string = _preprocess(string, unicode_escape)
+        objects = parse_objects(string)
+    except ValueError:
+        # Invalid escapes, lone surrogates and embedded NULs cannot be parsed.
+        return
+
+    for raw_data in objects:
         try:
             data = loader(raw_data, *loader_args, **loader_kwargs)
         except ValueError:

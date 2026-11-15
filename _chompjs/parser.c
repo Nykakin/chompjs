@@ -202,7 +202,9 @@ struct State* value(struct Parser* parser) {
     char c = next_char(parser);
     const char* position = parser->input + parser->input_position;
 
-    if(c == '"' || c == '\'' || c == '`') {
+    if(c == '\0') {
+        return &states[ERROR_STATE];
+    } else if(c == '"' || c == '\'' || c == '`') {
         return handle_quoted(parser);
     } else if(isdigit(c) || c == '.' || c == '-') {
         if(parser->is_key) {

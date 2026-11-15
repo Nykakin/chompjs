@@ -51,13 +51,13 @@ typedef struct {
 } JsonIterState;
 
 static PyObject* json_iter_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
-    JsonIterState* json_iter_state = (JsonIterState *)type->tp_alloc(type, 0);
-    if (!json_iter_state) {
+    const char* string;
+    if (!PyArg_ParseTuple(args, "s", &string)) {
         return NULL;
     }
 
-    const char* string;
-    if (!PyArg_ParseTuple(args, "s", &string)) {
+    JsonIterState* json_iter_state = (JsonIterState *)type->tp_alloc(type, 0);
+    if (!json_iter_state) {
         return NULL;
     }
     init_parser(&json_iter_state->parser, string);
